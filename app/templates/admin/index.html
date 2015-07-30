@@ -1,0 +1,78 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+{{ super() }}
+<div class="row-fluid">
+    <h1>Administration pages</h1>
+    {% if current_user.is_authenticated() %}
+    <p class="lead">
+        Welcome to the Wiki Wizard administration pages
+    </p>
+    <p>
+        On these pages you can manage and create content for your teams wiki and upload it to the iGEM servers.<br>
+        The first thing you should do, is go to the settings page and configure your teams namespace etc.<br>
+    </p>
+    <p class="lead">
+        Content
+    </p>
+    <p>
+        Under the Content tab above, you will find links to manage Pages, Sections, Persons, Timeline entries.<br>
+        While editing, you will have access to an editor, that will help with formatting the HTML and to the right, there will be two drop downs where you can select files and images, to see their path.
+        This path will automatically be replaced with the correct path on the iGEM servers, when you upload content.<br>
+        <br>
+        In the Pages tab, you can create, delete and edit the pages on the wiki. Each page contains one or more sections,
+        which can be edited either under the page or on the sections page.<br>
+        You can change the order of the sections and of the pages here as well. If you wish to have a hierarchical menu, the order of the pages must be defined in the Menu page under the Advanced tab.<br>
+        It is also possible to give each page, section and person an image on these pages. These can be referenced in the templates to show these if desired.
+        <br>
+        The Persons and Timeline entries, can also be edited and referenced in templates to include team members etc.<br>
+        However, you should note, that a file must have been uploaded to the iGEM servers in order for the external path to be detected.
+    </p>
+    <p class="lead">
+        Files
+    </p>
+    <p>
+        Under the Files tab above, you will find links to manage images and other files.<br>
+        Here you can add images and files that can be added to the wiki.
+        When creating a new file, you will have to upload the file, and give it a name.<br>
+        After a file or an image has been uploaded to the iGEM servers its external path will be shown here.
+    </p>
+    <p class="lead">
+        Theme
+    </p>
+    <p>
+        Under the Theme tab, you will find links to manage files related to the look and function of your wiki.<br>
+        These files will be rendered through the <a href="http://jinja.pocoo.org">Jinja</a> template engine, allowing you to use loops and more.<br>
+        There are three file types under this tab. HTML (Templates), CSS and JavaScript.
+    </p>
+    <p class="lead">
+        Settings and Upload
+    </p>
+    <p>
+        The settings page contains you can set your teams namespace and the base url for the iGEM servers.<br>
+        The namespace is the teams name, and the base url is the url to this years iGEM page.
+        This should be http://&lt;YEAR&gt;.igem.org where &lt;YEAR&gt; is the current year.<br>
+        This page also contains settings for login and logout urls, which should stay the same every year.<br>
+        The Show Register Page settings can be unticked, to prevent other people from creating a user to sign in and edit your data.<br>
+        On the Upload page you can upload the content to the iGEM servers. Your files will automatically be prepended with you namespace, in order to avoid conflicts with other teams files.<br>
+        At the bottom of the page, you should input the login information you use on the iGEM website to upload content.
+    </p>
+    <p class="lead">
+        Advanced
+    </p>
+    <p>
+        On the Menu page, you can create a hierarchical menu. A menu item can either link to a Page, or custom properties can be set using the name and url fields.<br>
+        Menu items will be sorted by their position and can be placed under a parent item. Please note, that this logic needs to be supported by the template.<br>
+        On the Users page you can delete users to revoke admin access.
+    </p>
+    {% else %}
+    <p class="lead">
+        Authentication
+    </p>
+    <p>
+        {{ desc }}
+    </p>
+    {{ wtf.quick_form(form) }}
+    {{ link | safe }}
+    {% endif %}
+</div>
+{% endblock body %}

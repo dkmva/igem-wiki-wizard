@@ -1,0 +1,10 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+{{ super() }}
+    <h1>Settings</h1>
+    <p class="lead">
+        Here you can change settings, such as your team namespace
+    </p>
+
+    {{ wtf.quick_form(form) }}
+{% endblock body %}

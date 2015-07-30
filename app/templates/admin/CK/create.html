@@ -1,0 +1,28 @@
+{% extends 'admin/model/create.html' %}
+
+
+{% block body %}
+    <div id="images" style="position: absolute;
+                      top: 130px;
+                      right: 100px;
+                      z-index: 10;">
+
+    </div>
+    {{ super() }}
+{% endblock %}
+
+{% block tail %}
+    {{ super() }}
+    <script src="{{ url_for('ckedit', path='ckeditor.js') }}"></script>
+    <script>
+    $('.inline-field .btn').click(function() {
+         $('.ckeditor').each(function () {
+             if(!CKEDITOR.instances[this.id]) {
+                 CKEDITOR.replace(this.id);
+             }
+        });
+    });
+    $( "#images" ).load( "/images" );
+    </script>
+{% endblock %}
+
