@@ -12,7 +12,7 @@
 
 {% block tail %}
     {{ super() }}
-    <script src="{{ url_for('ckedit', path='ckeditor.js') }}"></script>
+    <script src="{{ url_for('main.ckedit', path='ckeditor.js') }}"></script>
     <script>
     CKEDITOR.dtd.$removeEmpty['span'] = false;
     $('.inline-field .btn').click(function() {

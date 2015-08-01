@@ -5,7 +5,7 @@
 <ul class="nav pull-right">
   {% if config.NAMESPACE %}
   <li>
-      <a href="{{ url_for('wiki', namespace=config.NAMESPACE) }}">Team main page</a>
+      <a href="{{ url_for('main.wiki', namespace=config.NAMESPACE) }}">Team main page</a>
   </li>
   {% endif %}
   {% if current_user.is_authenticated() %}

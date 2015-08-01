@@ -1,9 +1,12 @@
 from flask import url_for, render_template_string, current_app
-from flask.ext.login import UserMixin
+from flask.ext.login import UserMixin, LoginManager
+from flask.ext.sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from app import db, login_manager
-from app.upload import TextUploader, FileUploader
+from .upload import TextUploader, FileUploader
+
+db = SQLAlchemy()
+login_manager = LoginManager()
 
 
 class Person(db.Model):
@@ -49,7 +52,6 @@ class Page(db.Model, TextUploader):
               'js_files': JsFile.query.filter_by(active=True).order_by(JsFile.position),
               'namespace': current_app.config['NAMESPACE']}
 
-        #return render_template('base.html', **kw)
         return self.template.render(**kw)
 
     def render_external(self):
@@ -135,7 +137,7 @@ class MenuItem(db.Model):
     @property
     def href(self):
         if self.page:
-            return url_for('wiki', path=self.page.url, namespace=current_app.config['NAMESPACE'])
+            return url_for('.wiki', path=self.page.url, namespace=current_app.config['NAMESPACE'])
         return u'{}'.format(self.url or "")
 
 

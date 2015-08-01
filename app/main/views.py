@@ -1,15 +1,19 @@
 import os
-from flask import render_template, current_app, redirect, url_for, send_from_directory
+from flask import url_for, redirect, current_app, render_template, send_from_directory
 from werkzeug.exceptions import NotFound
-from models import Page, Image, CssFile, JsFile, File
+from . import main
+from ..models import Page, JsFile, Image, File, CssFile
 
 
+@main.route('/')
 def index():
 
     return redirect(url_for('admin.index'))
 
 
-def wiki(path, namespace):
+@main.route('/Team:<namespace>')
+@main.route('/Team:<namespace>/<path:path>')
+def wiki(namespace, path=None):
     if namespace != current_app.config['NAMESPACE']:
         raise NotFound()
 
@@ -25,7 +29,8 @@ def wiki(path, namespace):
         return content.render()
 
 
-def images():
+@main.route('/images')
+def file_server():
 
     images = Image.query.all()
     files = File.query.all()
@@ -33,6 +38,7 @@ def images():
     return render_template('images.html', images=images, files=files)
 
 
+@main.route('/ckeditor/<path:path>')
 def ckedit(path):
     full_path = os.path.join(current_app.root_path, 'ckeditor', path)
 

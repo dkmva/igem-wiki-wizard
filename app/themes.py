@@ -2,8 +2,7 @@ import os
 import zipfile
 from flask import current_app
 import yaml
-from app import db
-from app.models import Template, Image, File, JsFile, CssFile
+from .models import db, Template, Image, File, JsFile, CssFile
 
 
 def compile_theme(theme_name):
@@ -50,28 +49,23 @@ def load_theme(theme_name):
 
         for e in theme['templates']:
             with zf.open(e) as f:
-                models.append(Template(name=f.name, content=f.read()))
+                models.append(Template(name=f.name, content=unicode(f.read())))
 
         for i, e in enumerate(theme['css_files'], 1):
             with zf.open(e) as f:
-                models.append(CssFile(url=f.name, content=f.read(), position=i, active=True))
+                models.append(CssFile(url=f.name, content=unicode(f.read()), position=i, active=True))
 
         for i, e in enumerate(theme['js_files'], 1):
             with zf.open(e) as f:
-                models.append(JsFile(url=f.name, content=f.read(), position=i, active=True))
+                models.append(JsFile(url=f.name, content=unicode(f.read()), position=i, active=True))
 
         for f in theme['images']:
             zf.extract(f, path=current_app.static_folder)
-            models.append(Image(name=f, path=f))
+            models.append(Image(name=unicode(f), path=unicode(f)))
 
         for f in theme['files']:
             zf.extract(f, path=current_app.static_folder)
-            models.append(File(name=f, path=f))
+            models.append(File(name=unicode(f), path=unicode(f)))
 
     db.session.add_all(models)
     db.session.commit()
-    """
-    with open(os.path.join(current_app.root_path, 'themes', 'simple.yml'), 'r') as f:
-        theme = yaml.safe_load(f)
-
-        print theme['templates'][0]['content'] == Template.query.filter_by(name='index').first().content"""
