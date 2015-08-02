@@ -137,7 +137,7 @@ class MenuItem(db.Model):
     @property
     def href(self):
         if self.page:
-            return url_for('.wiki', path=self.page.url, namespace=current_app.config['NAMESPACE'])
+            return url_for('main.wiki', path=self.page.url, namespace=current_app.config['NAMESPACE'])
         return u'{}'.format(self.url or "")
 
 

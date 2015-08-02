@@ -1,18 +1,11 @@
 import HTMLParser
-import cookielib
 import os
 import re
-import urllib
-import urllib2
-import MultipartPostHandler
+import requests
+
 from flask import current_app
 
-# Cookie for storing login
-cookie = cookielib.CookieJar()
-# Opener for login and submitting data.
-opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cookie), MultipartPostHandler.MultipartPostHandler)
-
-file_path = os.environ.get('OPENSHIFT_DATA_DIR', os.path.join(os.path.dirname(__file__), 'static'))
+session = requests.Session()
 
 
 class MyHTMLParser(HTMLParser.HTMLParser):
@@ -22,7 +15,8 @@ class MyHTMLParser(HTMLParser.HTMLParser):
 
     def handle_starttag(self, tag, attributes):
         """Function to do the parsing.
-        The values input tags wpAutoSummary, wpEditToken and wpEdittime are needed to submit the edit form."""
+        The values input tags wpAutoSummary, wpEditToken and wpEdittime are needed to submit the edit text.
+        wpEditToken, wpWatchthis, wpIgnoreWarning and wpUpload are needed to upload a file"""
 
         if tag == 'input':
             # Convert list of tuples into dictionary.
@@ -42,25 +36,22 @@ class TextUploader(object):
         if self.url:
             edit_path += '/{}'.format(self.url)
 
-        resp = opener.open('{}/wiki/index.php?title={}&action=edit'.format(current_app.config.get('BASE_URL'), edit_path))
+        response = session.get('{}/wiki/index.php?title={}&action=edit'.format(current_app.config.get('BASE_URL'), edit_path))
 
         parser = MyHTMLParser()
-        parser.feed(resp.read().decode('utf-8'))
-
+        parser.feed(response.text)
         data = parser.tags
 
         html = self.render_external()
-        data['wpTextbox1'] = html.encode('utf-8')
+        data['wpTextbox1'] = html
 
-        encoded_data = urllib.urlencode(data)
+        session.post("{}/wiki/index.php?title={}&action=submit".format(current_app.config.get('BASE_URL'), edit_path), data)
 
-        req = urllib2.Request("{}/wiki/index.php?title={}&action=submit".format(current_app.config.get('BASE_URL'), edit_path), encoded_data.encode('utf-8'))
-
-        resp = opener.open(req)
+        return
 
     def render_external(self):
         """Render function must be defined for upload function to work"""
-        return
+        raise NotImplementedError("Subclasses should implement this!")
 
 
 class FileUploader(object):
@@ -68,24 +59,20 @@ class FileUploader(object):
 
     def upload(self):
 
-        resp = opener.open('{}/Special:Upload'.format(current_app.config.get('BASE_URL')))
+        response = session.get('{}/Special:Upload'.format(current_app.config.get('BASE_URL')))
 
         parser = MyHTMLParser()
-        parser.feed(resp.read())
-
+        parser.feed(response.text)
         data = parser.tags
 
-        abs_path = os.path.join(file_path, self.path)
+        data['wpDestFile'] = "{}_{}".format(current_app.config['NAMESPACE'], self.name)
+        abs_path = os.path.join(current_app.static_folder, self.path)
+        files = {'wpUploadFile': open(abs_path, 'rb')}
 
-        with open(abs_path.encode('utf-8'), 'rb') as f:
-            data['wpDestFile'] = "{}_{}".format(current_app.config['NAMESPACE'], self.name).encode('utf-8')
-            data['wpUploadFile'] = f
-            resp = opener.open('{}/Special:Upload'.format(current_app.config.get('BASE_URL')), data)
-
-            #Find the external path
-            html = resp.read()
-            m = re.search('"(/wiki/images/.+?)"', html)
-            self.external_path = m.group(1)
+        response = session.post('{}/Special:Upload'.format(current_app.config.get('BASE_URL')), data=data, files = files)
+        #Find the external path
+        m = re.search('"(/wiki/images/.+?)"', response.text)
+        self.external_path = m.group(1)
 
         return
 
@@ -98,28 +85,16 @@ def wiki_login(username, password):
     login_data = {'username':username,
                   'password':password,
                   'Login':'Log in'}
-    # Encode the data
-    encoded_data = urllib.urlencode(login_data)
-    # Make the request
-    request = urllib2.Request(current_app.config.get('LOGIN_URL'), encoded_data.encode('utf-8'))
-    # Do the login
-    response = opener.open(request)
 
-    response = response.read()
+    response = session.post('http://www.igem.org/Login', login_data)
 
-    logged_in = 'successfully logged' in response
+    logged_in = 'successfully logged' in response.text
 
     return logged_in
 
 
 def wiki_logout():
-    # Make the request
-    request = urllib2.Request(current_app.config.get('LOGOUT_URL'))
-    # Do the login
-    response = opener.open(request)
+    """Log out of the iGEM wiki again"""
+    response = session.get('http://igem.org/cgi/Logout.cgi')
 
-    response = response.read()
-
-    logged_out = 'successfully logged' in response
-
-    return logged_out
+    return
