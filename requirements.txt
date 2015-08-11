@@ -12,6 +12,7 @@ PyYAML==3.11
 SQLAlchemy==1.0.8
 WTForms==2.0.2
 Werkzeug==0.10.4
+beautifulsoup4==4.4.0
 dominate==2.1.12
 itsdangerous==0.24
 requests==2.7.0
