@@ -1,3 +1,4 @@
+import os
 from flask import url_for
 from flask.ext.admin import BaseView
 from flask.ext.admin.contrib.sqla import ModelView
@@ -8,7 +9,8 @@ from markupsafe import Markup
 from wtforms import TextAreaField
 from wtforms.ext.sqlalchemy import orm
 from wtforms.widgets import TextArea
-from .. import static_folder
+
+static_folder = os.path.join(os.environ.get('OPENSHIFT_DATA_DIR', 'app'), 'static')
 
 
 class CKTextArea(TextArea):

@@ -9,7 +9,7 @@ CKEDITOR.editorConfig = function( config ) {
 	// config.uiColor = '#AADC6E';
 
 
-	config.extraPlugins = 'fontawesome';
+	//config.extraPlugins = 'fontawesome';
 	config.contentsCss = '/ckeditor/fonts/bootstrap-font-awesome.min.css';
 	config.allowedContent = true;
 
