@@ -1,29 +1,19 @@
-import HTMLParser
 import os
 import re
 import requests
+from bs4 import BeautifulSoup
 
 from flask import current_app
 
 session = requests.Session()
 
 
-class MyHTMLParser(HTMLParser.HTMLParser):
-    """Parser class to get the POST data needed to submit"""
-
-    tags = {}
-
-    def handle_starttag(self, tag, attributes):
-        """Function to do the parsing.
-        The values input tags wpAutoSummary, wpEditToken and wpEdittime are needed to submit the edit text.
-        wpEditToken, wpWatchthis, wpIgnoreWarning and wpUpload are needed to upload a file"""
-
-        if tag == 'input':
-            # Convert list of tuples into dictionary.
-            attributes = dict(attributes)
-            # Store the name/value pair of the tag in self.tags.
-            if attributes['name'] in ['wpAutoSummary', 'wpEditToken', 'wpEdittime', 'wpWatchthis', 'wpIgnoreWarning', 'wpUpload']:
-                self.tags[attributes['name']] = attributes['value']
+def scrape_inputs(html):
+    """Function to scrape input data needed to submit.
+    The values input tags wpAutoSummary, wpEditToken and wpEdittime are needed to submit the edit text.
+    wpEditToken, wpWatchthis, wpIgnoreWarning and wpUpload are needed to upload a file"""
+    soup = BeautifulSoup(html, 'html.parser')
+    return {inp['name']: inp['value'] for inp in soup.find_all('input') if inp['name'] in ['wpAutoSummary', 'wpEditToken', 'wpEdittime', 'wpWatchthis', 'wpIgnoreWarning', 'wpUpload']}
 
 
 class TextUploader(object):
@@ -38,9 +28,7 @@ class TextUploader(object):
 
         response = session.get('{}/wiki/index.php?title={}&action=edit'.format(current_app.config.get('BASE_URL'), edit_path))
 
-        parser = MyHTMLParser()
-        parser.feed(response.text)
-        data = parser.tags
+        data = scrape_inputs(response.text)
 
         html = self.render_external()
         data['wpTextbox1'] = html
@@ -61,11 +49,13 @@ class FileUploader(object):
 
         response = session.get('{}/Special:Upload'.format(current_app.config.get('BASE_URL')))
 
-        parser = MyHTMLParser()
-        parser.feed(response.text)
-        data = parser.tags
+        data = scrape_inputs(response.text)
 
-        data['wpDestFile'] = "{}_{}".format(current_app.config['NAMESPACE'], self.name)
+        uploadname = self.name
+        if not os.path.splitext(self.name)[-1]:
+            uploadname += os.path.splitext(self.path)[-1]
+
+        data['wpDestFile'] = "{}_{}".format(current_app.config['NAMESPACE'], uploadname)
         abs_path = os.path.join(current_app.static_folder, self.path)
         files = {'wpUploadFile': open(abs_path, 'rb')}
 
