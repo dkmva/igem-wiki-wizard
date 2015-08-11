@@ -82,7 +82,8 @@ class UploadView(ModelView):
 class FileUploadView(UploadView):
     form_extra_fields = {
         'path': form.FileUploadField('File',
-                                     base_path=static_folder)
+                                     base_path=static_folder,
+                                     allowed_extensions=['pdf', 'ppt', 'txt', 'zip', 'mp3', 'mp4', 'webm', 'mov', 'swf', 'xls', 'm', 'ogg', 'gb', 'xls', 'tif', 'tiff', 'fcs', 'otf', 'eot', 'ttf', 'woff'])
     }
 
 
@@ -90,6 +91,7 @@ class ImageUploadView(UploadView):
     form_extra_fields = {
         'path': form.ImageUploadField('Image',
                                       base_path=static_folder,
-                                      thumbnail_size=(100, 100, True))
+                                      thumbnail_size=(100, 100, True),
+                                      allowed_extensions=['png', 'gif', 'jpg', 'jpeg'])
     }
 
