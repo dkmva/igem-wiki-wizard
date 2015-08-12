@@ -28,7 +28,7 @@ class PersonView(ModelImageView):
     column_default_sort = 'position'
 
 
-class TimeLineView(ModelView):
+class TimeLineView(ModelImageView):
     column_default_sort = 'date'
 
 
