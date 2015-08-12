@@ -62,7 +62,29 @@ class ModelImageView(CKModelView):
     }
 
 
+def rename(obj, file_data):
+    parts = os.path.splitext(file_data.filename)
+    return '{}{}'.format(obj, parts[-1])
+
+
 class UploadView(ModelView):
+    def on_model_change(self, form, model, is_created):
+        if not is_created:
+            ext = os.path.splitext(model.path)[-1]
+            old_path = os.path.join(static_folder, model.path)
+            old_thumb = os.path.join(static_folder, '{}_thumb{}'.format(*os.path.splitext(model.path)))
+            new_path = os.path.join(static_folder, model.name+ext)
+            new_thumb = os.path.join(static_folder, '{}_thumb{}'.format(model.name, ext))
+            model.path = model.name+ext
+            os.rename(old_path, new_path)
+            os.rename(old_thumb, new_thumb)
+
+    def on_model_delete(self, model):
+        path = os.path.join(static_folder, model.path)
+        thumb = os.path.join(static_folder, '{}_thumb{}'.format(*os.path.splitext(model.path)))
+        os.remove(path)
+        os.remove(thumb)
+
     def _prepend_namespace(view, context, model, name):
         return url_for('static', filename=model.path)
 
@@ -83,7 +105,8 @@ class FileUploadView(UploadView):
     form_extra_fields = {
         'path': form.FileUploadField('File',
                                      base_path=static_folder,
-                                     allowed_extensions=['pdf', 'ppt', 'txt', 'zip', 'mp3', 'mp4', 'webm', 'mov', 'swf', 'xls', 'm', 'ogg', 'gb', 'xls', 'tif', 'tiff', 'fcs', 'otf', 'eot', 'ttf', 'woff'])
+                                     allowed_extensions=['pdf', 'ppt', 'txt', 'zip', 'mp3', 'mp4', 'webm', 'mov', 'swf', 'xls', 'm', 'ogg', 'gb', 'xls', 'tif', 'tiff', 'fcs', 'otf', 'eot', 'ttf', 'woff'],
+                                     namegen=rename)
     }
 
 
@@ -92,6 +115,7 @@ class ImageUploadView(UploadView):
         'path': form.ImageUploadField('Image',
                                       base_path=static_folder,
                                       thumbnail_size=(100, 100, True),
-                                      allowed_extensions=['png', 'gif', 'jpg', 'jpeg'])
+                                      allowed_extensions=['png', 'gif', 'jpg', 'jpeg'],
+                                      namegen=rename)
     }
 

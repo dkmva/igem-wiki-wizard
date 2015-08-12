@@ -177,6 +177,8 @@ class UploadView(BaseView):
                     page.upload()
 
                 wiki_logout()
+            else:
+                flash('Could not login to the iGEM wiki. Wrong credentials?')
 
         return self.render('admin/upload.html', form=form)
 
