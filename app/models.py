@@ -160,7 +160,7 @@ class Section(db.Model):
 class Image(db.Model, FileUploader):
     __tablename__ = 'images'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Unicode(64))
+    name = db.Column(db.Unicode(64), unique=True)
     path = db.Column(db.Unicode(128))
     external_path = db.Column(db.Unicode(128))
 
@@ -171,7 +171,7 @@ class Image(db.Model, FileUploader):
 class File(db.Model, FileUploader):
     __tablename__ = 'files'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Unicode(64))
+    name = db.Column(db.Unicode(64), unique=True)
     path = db.Column(db.Unicode(128))
     external_path = db.Column(db.Unicode(128))
 
