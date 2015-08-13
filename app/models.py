@@ -1,6 +1,7 @@
 from flask import url_for, render_template_string, current_app
 from flask.ext.login import UserMixin, LoginManager
 from flask.ext.sqlalchemy import SQLAlchemy
+from scss import Compiler
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from .upload import TextUploader, FileUploader
@@ -99,6 +100,10 @@ class StaticFile(TextUploader):
 
 class CssFile(db.Model, StaticFile):
     __tablename__ = 'css_files'
+
+    def render(self):
+        rendered = super(CssFile, self).render()
+        return Compiler().compile_string(rendered)
 
 
 class JsFile(db.Model, StaticFile):
