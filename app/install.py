@@ -3,8 +3,8 @@ import random
 import string
 import yaml
 
-from .models import db, MenuItem, Page, Section, Person
-from .themes import load_theme
+from app.models import db, MenuItem, Page, Section, Person
+from app.themes import load_theme
 
 pages = [
     ('Home', None),

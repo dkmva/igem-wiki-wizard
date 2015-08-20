@@ -2,7 +2,7 @@ import os
 import zipfile
 from flask import current_app
 import yaml
-from .models import db, Template, Image, File, JsFile, CssFile
+from app.models import db, Template, Image, File, JsFile, CssFile
 
 
 def compile_theme(theme_name):

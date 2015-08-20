@@ -3,8 +3,8 @@ import yaml
 from flask import Flask
 from sqlalchemy.exc import OperationalError, ProgrammingError
 from wtforms import HiddenField
-from .models import db, login_manager, User
-from .install import install_data, make_config
+from app.models import db, login_manager, User
+from app.install import install_data, make_config
 
 
 # From Flask-Bootstrap

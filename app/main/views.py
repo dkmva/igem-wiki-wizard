@@ -1,8 +1,8 @@
 import os
 from flask import url_for, redirect, current_app, render_template, send_from_directory
 from werkzeug.exceptions import NotFound
-from . import main
-from ..models import Page, JsFile, Image, File, CssFile
+from app.main import main
+from app.models import Page, JsFile, Image, File, CssFile
 
 
 @main.route('/')

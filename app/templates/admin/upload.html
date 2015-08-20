@@ -1,4 +1,225 @@
 {% extends 'admin/master.html' %}
+
+{% block head %}
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.4/angular.min.js"></script>
+    <script>
+    var app = angular.module('uploadApp', []);
+    app.factory('uploadFactory', ['$http', '$q', '$timeout', function($http, $q, $timeout) {
+        var service = {};
+        var _variables = {'thingsToDo': 0, 'thingsDone': 0, 'status': 'Idle'};
+
+        service.getVariables = function() {
+          return _variables;
+        };
+
+        service.setThingsToDo = function (toDo) {
+            _variables.thingsToDo = toDo;
+        };
+
+        service.setStatus = function (status) {
+            _variables.status = status;
+        };
+
+        service.addThingsDone = function () {
+            _variables.thingsDone += 1;
+        };
+
+        service.doLogin = function(username, password) {
+            _variables.status = 'Logging In';
+            _variables.thingsDone = 0;
+            return $http.post('/admin/uploadview/wikilogin', {username: username, password: password});
+        };
+
+        service.doLogout = function(username, password) {
+            _variables.status = 'Logging Out';
+            return $http.get('/admin/uploadview/wikilogout');
+        };
+
+        service.finishUp = function() {
+            _variables.status = 'Finished';
+            return $timeout(function() {
+                return _variables.thingsDone += 1;
+            });
+        };
+
+        service.uploadPages = function(pages) {
+            _variables.status = 'Uploading pages';
+            var promises = pages.map(function(page) {
+                return $http.post('/admin/uploadview/pageupload', {page: page.name}).then(function(){
+                    //_variables.status = 'Uploading pages: ' + page.name;
+                    return _variables.thingsDone += 1;
+                });
+            });
+
+            return $q.all(promises);
+        };
+
+        service.uploadFiles = function(files) {
+            _variables.status = 'Uploading files';
+            var promises = files.map(function(file) {
+                return $http.post('/admin/uploadview/fileupload', {file: file.name}).then(function(){
+                    //_variables.status = 'Uploading files: ' + file.name;
+                    return _variables.thingsDone += 1;
+                });
+            });
+
+            return $q.all(promises);
+        };
+
+        service.uploadImages = function(images) {
+            _variables.status = 'Uploading images';
+            var promises = images.map(function(image) {
+                return $http.post('/admin/uploadview/imageupload', {image: image.name}).then(function(){
+                    //_variables.status = 'Uploading images: ' + image.name;
+                    return _variables.thingsDone += 1;
+                });
+            });
+
+            return $q.all(promises);
+        };
+
+        service.uploadCSS = function(csss) {
+            _variables.status = 'Uploading CSS files';
+            var promises = csss.map(function(css) {
+                return $http.post('/admin/uploadview/cssupload', {css: css.name}).then(function(){
+                    //_variables.status = 'Uploading CSS files: ' + css.name;
+                    return _variables.thingsDone += 1;
+                });
+            });
+
+            return $q.all(promises);
+        };
+
+        service.uploadJS = function(jss) {
+            _variables.status = 'Uploading JS files';
+            var promises = jss.map(function(js) {
+                return $http.post('/admin/uploadview/jsupload', {js: js.name}).then(function(){
+                    //_variables.status = 'Uploading JS files: ' + js.name;
+                    return _variables.thingsDone += 1;
+                });
+            });
+
+            return $q.all(promises);
+        };
+
+
+        return service;
+    }]);
+    app.controller('uploadController', ['$scope', '$http', '$filter', '$timeout', '$q', 'uploadFactory', function($scope, $http, $filter, $timeout, $q, uploadFactory) {
+
+        $scope.username = '';
+        $scope.password = '';
+
+        $scope.variables = uploadFactory.getVariables();
+
+        $scope.barType = '';
+        $scope.percentage = function() {
+            return ($scope.variables.thingsDone / $scope.variables.thingsToDo * 100 || 0);
+        };
+
+        $scope.pages = [
+            {%- for e in pages -%}
+                {'name': '{{ e |safe }}', 'selected': false},
+            {% endfor -%}
+        ];
+        $scope.files = [
+            {%- for e in files -%}
+                {'name': '{{ e |safe }}', 'selected': false},
+            {% endfor -%}
+        ];
+        $scope.images = [
+            {%- for e in images -%}
+                {'name': '{{ e |safe }}', 'selected': false},
+            {% endfor -%}
+        ];
+        $scope.css = [
+            {%- for e in css -%}
+                {'name': '{{ e |safe }}', 'selected': false},
+            {% endfor -%}
+        ];
+        $scope.js = [
+            {%- for e in js -%}
+                {'name': '{{ e |safe }}', 'selected': false},
+            {% endfor -%}
+        ];
+
+        $scope.uploadPages = function () {
+            return $filter('filter')($scope.pages, {'selected': true})
+        };
+
+        $scope.uploadFiles = function () {
+            return $filter('filter')($scope.files, {'selected': true})
+        };
+
+        $scope.uploadImages = function () {
+            return $filter('filter')($scope.images, {'selected': true})
+        };
+
+        $scope.uploadCSS = function () {
+            return $filter('filter')($scope.css, {'selected': true})
+        };
+
+        $scope.uploadJS = function () {
+            return $filter('filter')($scope.js, {'selected': true})
+        };
+
+
+        $scope.uploadStuff = function() {
+            $scope.barType = '';
+            var thingsToDO = $scope.uploadImages().length +
+                             $scope.uploadFiles().length +
+                             $scope.uploadPages().length +
+                             $scope.uploadCSS().length +
+                             $scope.uploadJS().length +
+                             2;
+
+            uploadFactory.setThingsToDo(thingsToDO);
+
+            uploadFactory.doLogin($scope.username, $scope.password).then(function(response) {
+                if (response.data == 'Success') {
+                    uploadFactory.addThingsDone();
+
+                    return uploadFactory.uploadImages($scope.uploadImages()).then(function() {
+                        return uploadFactory.uploadFiles($scope.uploadFiles()).then(function() {
+                            return uploadFactory.uploadPages($scope.uploadPages()).then(function() {
+                                return uploadFactory.uploadCSS($scope.uploadCSS()).then(function() {
+                                    return uploadFactory.uploadJS($scope.uploadJS()).then(function() {
+                                        return uploadFactory.doLogout().then(function() {
+                                            uploadFactory.addThingsDone();
+                                            return uploadFactory.finishUp().then(function(){
+                                                $scope.barType = 'bar-success';
+                                            });
+                                        });
+                                    });
+                                });
+                            });
+                        });
+                    });
+
+                } else {
+                    uploadFactory.setStatus('Could not login to the iGEM wiki. Wrong credentials?');
+                    $scope.barType = 'bar-danger';
+                    $scope.variables.thingsDone = $scope.variables.thingsToDo;
+                }
+            })
+        };
+    }]);
+    </script>
+     <style>
+        .progress {
+            width: 100%;
+            text-align: center;
+            position: relative;
+        }
+
+        .progress span {
+            position: absolute;
+            display: block;
+            width: 100%;
+            color: black;
+         }
+    </style>
+{% endblock %}
 {% block body %}
 {{ super() }}
 <div class="row-fluid">
@@ -6,8 +227,55 @@
     <p class="lead">
         Here you can publish the website to the iGEM wiki
     </p>
-
-
-    {{ wtf.quick_form(form, extra_classes='no_disc') }}
+    <div ng-app="uploadApp">
+        {% raw %}
+        <div ng-controller="uploadController">
+            <div class="progress progress-striped active row-fluid">
+              <div class="bar" ng-class="barType" ng-style="{'width': percentage() + '%'}"><span>{{ variables.status }}</span></div>
+            </div>
+            <form ng-submit="uploadStuff()">
+                <div class="row-fluid input-append">
+                    <input type="text" ng-model="username"  size="30"
+                           placeholder="username">
+                    <input type="password" ng-model="password"  size="30"
+                           placeholder="password">
+                    <input class="btn" type="submit" value="upload">
+                </div>
+                <div class="row-fluid">
+                    <div class="span2">
+                        <h4>Pages</h4>
+                        <label ng-repeat="e in pages">
+                            <input type="checkbox" ng-model="e.selected">{{ e.name }}
+                        </label>
+                  </div>
+                  <div class="span2">
+                        <h4>Images</h4>
+                        <label ng-repeat="e in images">
+                           <input type="checkbox" ng-model="e.selected">{{ e.name }}
+                        </label>
+                  </div>
+                  <div class="span2">
+                        <h4>Files</h4>
+                        <label ng-repeat="e in files">
+                           <input type="checkbox" ng-model="e.selected">{{ e.name }}
+                        </label>
+                  </div>
+                  <div class="span2">
+                        <h4>CSS Files</h4>
+                        <label ng-repeat="e in css">
+                           <input type="checkbox" ng-model="e.selected">{{ e.name }}
+                        </label>
+                  </div>
+                  <div class="span2">
+                        <h4>Javascript Files</h4>
+                        <label ng-repeat="e in js">
+                           <input type="checkbox" ng-model="e.selected">{{ e.name }}
+                        </label>
+                  </div>
+              </div>
+          </form>
+        </div>
+        {% endraw %}
+    </div>
 </div>
 {% endblock body %}

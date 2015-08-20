@@ -59,7 +59,7 @@ class FileUploader(object):
         abs_path = os.path.join(current_app.static_folder, self.path)
         files = {'wpUploadFile': open(abs_path, 'rb')}
 
-        response = session.post('{}/Special:Upload'.format(current_app.config.get('BASE_URL')), data=data, files = files)
+        response = session.post('{}/Special:Upload'.format(current_app.config.get('BASE_URL')), data=data, files=files)
         #Find the external path
         m = re.search('"(/wiki/images/.+?)"', response.text)
         self.external_path = m.group(1)
@@ -76,7 +76,7 @@ def wiki_login(username, password):
                   'password':password,
                   'Login':'Log in'}
 
-    response = session.post('http://www.igem.org/Login', login_data)
+    response = session.post(current_app.config['LOGIN_URL'], login_data)
 
     logged_in = 'successfully logged' in response.text
 
@@ -85,6 +85,6 @@ def wiki_login(username, password):
 
 def wiki_logout():
     """Log out of the iGEM wiki again"""
-    response = session.get('http://igem.org/cgi/Logout.cgi')
+    response = session.get(current_app.config['LOGOUT_URL'])
 
     return

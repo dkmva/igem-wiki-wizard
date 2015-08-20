@@ -4,7 +4,7 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from scss import Compiler
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from .upload import TextUploader, FileUploader
+from app.upload import TextUploader, FileUploader
 
 db = SQLAlchemy()
 login_manager = LoginManager()

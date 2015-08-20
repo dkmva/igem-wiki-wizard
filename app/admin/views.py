@@ -1,13 +1,14 @@
+import json
 import os
-from flask import url_for, redirect, flash, current_app
+from flask import url_for, redirect, flash, current_app, request
 from flask.ext.admin import AdminIndexView, expose
 from flask.ext.login import current_user, login_user, logout_user
 from wtforms import PasswordField
 import yaml
-from ..models import db, Section, User, Image, File, CssFile, JsFile, Page
-from ..upload import wiki_login, wiki_logout
-from .forms import LoginForm, RegistrationForm, UploadForm, SettingsForm
-from .view_types import ModelImageView, ModelView, FileUploadView, BaseView, ImageUploadView
+from app.models import db, Section, User, Image, File, CssFile, JsFile, Page
+from app.upload import wiki_login, wiki_logout
+from app.admin.forms import LoginForm, RegistrationForm, SettingsForm
+from app.admin.view_types import ModelImageView, ModelView, FileUploadView, BaseView, ImageUploadView
 
 
 class PageView(ModelImageView):
@@ -139,48 +140,68 @@ class ThemeView(BaseView):
 
 
 class UploadView(BaseView):
+
+    @expose('/wikilogin', methods=['POST'])
+    def login(self):
+        data = json.loads(request.data.decode())
+        if wiki_login(data['username'], data['password']):
+            return 'Success'
+        return 'Error'
+
+    @expose('/wikilogout')
+    def logout(self):
+        wiki_logout()
+        return 'Logged Out'
+
+    @expose('/pageupload', methods=['POST'])
+    def pageupload(self):
+        data = json.loads(request.data.decode())
+        page = data['page']
+        Page.query.filter_by(name=page).first().upload()
+        return 'Page Uploaded'
+
+    @expose('/fileupload', methods=['POST'])
+    def fileupload(self):
+        data = json.loads(request.data.decode())
+        file = data['file']
+        File.query.filter_by(name=file).first().upload()
+        return 'File Uploaded'
+
+
+    @expose('/imageupload', methods=['POST'])
+    def imageupload(self):
+        data = json.loads(request.data.decode())
+        image = data['image']
+        Image.query.filter_by(name=image).first().upload()
+        return 'Image Uploaded'
+
+    @expose('/cssupload', methods=['POST'])
+    def cssupload(self):
+        data = json.loads(request.data.decode())
+        css = data['css']
+        File.query.filter_by(name=css).first().upload()
+        return 'CSS Uploaded'
+
+
+    @expose('/jsupload', methods=['POST'])
+    def jsupload(self):
+        data = json.loads(request.data.decode())
+        js = data['js']
+        File.query.filter_by(name=js).first().upload()
+        return 'JS Uploaded'
+
     @expose('/', methods=['GET', 'POST'])
     def index(self):
 
-        page_choices = [(p.name, p.name) for p in Page.query.all()]
+        ctx = {
+        'pages': Page.query.order_by('position').all(),
+        'files': File.query.all(),
+        'images': Image.query.all(),
+        'css': CssFile.query.filter_by(active=True).all(),
+        'js': JsFile.query.filter_by(active=True).all()
+        }
 
-        image_choices = [(p.name, p.name) for p in Image.query.all()]
-        file_choices = [(p.name, p.name) for p in File.query.all()]
-
-        css_choices = [(p.url, p.url) for p in CssFile.query.filter_by(active=True).all()]
-        js_choices = [(p.url, p.url) for p in JsFile.query.filter_by(active=True).all()]
-
-        form = UploadForm(page_choices, image_choices, file_choices, css_choices, js_choices)
-
-        if form.validate_on_submit():
-
-            if wiki_login(form.username.data, form.password.data):
-
-                for image_name in form.images.data:
-                    image = Image.query.filter_by(name=image_name).first()
-                    image.upload()
-
-                for file_name in form.files.data:
-                    f = File.query.filter_by(name=file_name).first()
-                    f.upload()
-
-                for css_name in form.css_files.data:
-                    static_file = CssFile.query.filter_by(url=css_name).first()
-                    static_file.upload()
-
-                for js_name in form.js_files.data:
-                    static_file = JsFile.query.filter_by(url=js_name).first()
-                    static_file.upload()
-
-                for page_name in form.pages.data:
-                    page = Page.query.filter_by(name=page_name).first()
-                    page.upload()
-
-                wiki_logout()
-            else:
-                flash('Could not login to the iGEM wiki. Wrong credentials?')
-
-        return self.render('admin/upload.html', form=form)
+        return self.render('admin/upload.html', **ctx)
 
 
 class SettingsView(BaseView):
