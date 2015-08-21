@@ -12,18 +12,6 @@
           return _variables;
         };
 
-        service.setThingsToDo = function (toDo) {
-            _variables.thingsToDo = toDo;
-        };
-
-        service.setStatus = function (status) {
-            _variables.status = status;
-        };
-
-        service.addThingsDone = function () {
-            _variables.thingsDone += 1;
-        };
-
         service.doLogin = function(username, password) {
             _variables.status = 'Logging In';
             _variables.thingsDone = 0;
@@ -46,7 +34,6 @@
             _variables.status = 'Uploading pages';
             var promises = pages.map(function(page) {
                 return $http.post('/admin/uploadview/pageupload', {page: page.name}).then(function(){
-                    //_variables.status = 'Uploading pages: ' + page.name;
                     return _variables.thingsDone += 1;
                 });
             });
@@ -58,7 +45,6 @@
             _variables.status = 'Uploading files';
             var promises = files.map(function(file) {
                 return $http.post('/admin/uploadview/fileupload', {file: file.name}).then(function(){
-                    //_variables.status = 'Uploading files: ' + file.name;
                     return _variables.thingsDone += 1;
                 });
             });
@@ -70,7 +56,6 @@
             _variables.status = 'Uploading images';
             var promises = images.map(function(image) {
                 return $http.post('/admin/uploadview/imageupload', {image: image.name}).then(function(){
-                    //_variables.status = 'Uploading images: ' + image.name;
                     return _variables.thingsDone += 1;
                 });
             });
@@ -82,7 +67,6 @@
             _variables.status = 'Uploading CSS files';
             var promises = csss.map(function(css) {
                 return $http.post('/admin/uploadview/cssupload', {css: css.name}).then(function(){
-                    //_variables.status = 'Uploading CSS files: ' + css.name;
                     return _variables.thingsDone += 1;
                 });
             });
@@ -94,7 +78,6 @@
             _variables.status = 'Uploading JS files';
             var promises = jss.map(function(js) {
                 return $http.post('/admin/uploadview/jsupload', {js: js.name}).then(function(){
-                    //_variables.status = 'Uploading JS files: ' + js.name;
                     return _variables.thingsDone += 1;
                 });
             });
@@ -166,18 +149,18 @@
 
         $scope.uploadStuff = function() {
             $scope.barType = '';
-            var thingsToDO = $scope.uploadImages().length +
+            var thingsToDo = $scope.uploadImages().length +
                              $scope.uploadFiles().length +
                              $scope.uploadPages().length +
                              $scope.uploadCSS().length +
                              $scope.uploadJS().length +
                              2;
 
-            uploadFactory.setThingsToDo(thingsToDO);
+            $scope.variables.thingsToDo = thingsToDo;
 
             uploadFactory.doLogin($scope.username, $scope.password).then(function(response) {
                 if (response.data == 'Success') {
-                    uploadFactory.addThingsDone();
+                    $scope.variables.thingsDone += 1;
 
                     return uploadFactory.uploadImages($scope.uploadImages()).then(function() {
                         return uploadFactory.uploadFiles($scope.uploadFiles()).then(function() {
@@ -185,7 +168,7 @@
                                 return uploadFactory.uploadCSS($scope.uploadCSS()).then(function() {
                                     return uploadFactory.uploadJS($scope.uploadJS()).then(function() {
                                         return uploadFactory.doLogout().then(function() {
-                                            uploadFactory.addThingsDone();
+                                            $scope.variables.thingsDone += 1;
                                             return uploadFactory.finishUp().then(function(){
                                                 $scope.barType = 'bar-success';
                                             });
@@ -197,7 +180,7 @@
                     });
 
                 } else {
-                    uploadFactory.setStatus('Could not login to the iGEM wiki. Wrong credentials?');
+                    $scope.variables.status = 'Could not login to the iGEM wiki. Wrong credentials?';
                     $scope.barType = 'bar-danger';
                     $scope.variables.thingsDone = $scope.variables.thingsToDo;
                 }

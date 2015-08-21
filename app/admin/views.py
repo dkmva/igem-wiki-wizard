@@ -179,7 +179,7 @@ class UploadView(BaseView):
     def cssupload(self):
         data = json.loads(request.data.decode())
         css = data['css']
-        File.query.filter_by(name=css).first().upload()
+        CssFile.query.filter_by(url=css).first().upload()
         return 'CSS Uploaded'
 
 
@@ -187,7 +187,7 @@ class UploadView(BaseView):
     def jsupload(self):
         data = json.loads(request.data.decode())
         js = data['js']
-        File.query.filter_by(name=js).first().upload()
+        JsFile.query.filter_by(url=js).first().upload()
         return 'JS Uploaded'
 
     @expose('/', methods=['GET', 'POST'])
