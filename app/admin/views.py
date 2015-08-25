@@ -138,6 +138,7 @@ class IndexView(AdminIndexView):
         data = json.loads(request.data.decode())
         doi = data['doi']
         r = requests.get('http://dx.doi.org/' + doi, headers={'accept': 'text/x-bibliography; style=apa'})
+        r.encoding = 'utf-8'
         firstauthor = r.text.split(',')[0]
         year = re.search('\((\d*)\)', r.text).groups()[0]
         id = '{}{}'.format(firstauthor, year)
