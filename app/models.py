@@ -217,7 +217,7 @@ class Reference(db.Model):
     __tablename__ = 'references'
     id = db.Column(db.Integer, primary_key=True)
     reference = db.Column(db.UnicodeText(length=2**31))
-    ref_id = db.Column(db.Unicode(32))
+    ref_id = db.Column(db.Unicode(32), unique=True)
 
     def __repr__(self):
         return u'{}'.format(self.reference)

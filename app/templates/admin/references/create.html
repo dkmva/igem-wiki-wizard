@@ -16,8 +16,8 @@
     <script>
     var app = angular.module('referenceApp', []);
     app.controller('referenceController', ['$scope', '$http', function($scope, $http){
-        $scope.reference = '';
-        $scope.refID = '';
+        $scope.reference = '{{ form.reference.data }}';
+        $scope.refID = '{{ form.ref_id.data }}';
         $scope.doi = '';
 
         $scope.getReference = function() {
