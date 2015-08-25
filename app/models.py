@@ -52,7 +52,8 @@ class Page(db.Model, TextUploader):
         return replace_reference
 
     def render(self):
-        kw = {'persons': Person.query.order_by('position').all(),
+        kw = {'sections': self.sections,
+              'persons': Person.query.order_by('position').all(),
               'main_menu': MenuItem.query.filter_by(parent=None).all() or Page.query.order_by('position').all(),
               'images': {image.name: image for image in Image.query.all()},
               'files': {f.name: f for f in File.query.all()},
@@ -63,13 +64,13 @@ class Page(db.Model, TextUploader):
               'js_files': JsFile.query.filter_by(active=True).order_by(JsFile.position),
               'namespace': current_app.config['NAMESPACE']}
 
-        sections = []
+        rendered_sections = []
         references = []
         for section in self.sections:
             section_html = section.template.render(section=section, references=references, **kw)
             section_html = re.sub(r'\\cite\{(.*?)\}', self.convert_references(references), section_html)
-            sections.append(section_html)
-        kw.update({'sections': sections})
+            rendered_sections.append(section_html)
+        kw.update({'rendered_sections': rendered_sections})
 
         return self.template.render(**kw)
 
