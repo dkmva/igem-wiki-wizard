@@ -1,13 +1,15 @@
 {% extends 'admin/model/edit.html' %}
+{% block head %}
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+{% endblock %}
 {% block body %}
 <div ng-app="referenceApp" ng-controller="referenceController">
 {{ super() }}
-<form ng-submit="getReference()">
-    <div class="row-fluid input-append">
-        <input type="text" ng-model="doi"  size="30"
-               placeholder="DOI">
-        <input class="btn" type="submit" value="get reference">
-    </div>
+<form ng-submit="getReference()" class="form-inline">
+    <input type="text" ng-model="doi"  size="30"
+           placeholder="DOI">
+    <input class="btn" type="submit" value="get reference">
+    <i class="fa" ng-class="loading"></i>
 </form>
 </div>
 {% endblock body %}
@@ -16,15 +18,18 @@
     <script>
     var app = angular.module('referenceApp', []);
     app.controller('referenceController', ['$scope', '$http', function($scope, $http){
-        $scope.reference = '{{ form.reference.data }}';
-        $scope.refID = '{{ form.ref_id.data }}';
+        $scope.reference = '{{ form.reference.data or '' }}';
+        $scope.refID = '{{ form.ref_id.data or '' }}';
         $scope.doi = '';
+        $scope.loading = '';
 
         $scope.getReference = function() {
+            $scope.loading = 'fa-spinner fa-spin';
             $http.post('/admin/getref', {'doi': $scope.doi})
             .then(function(response) {
                 $scope.reference = response.data.reference;
                 $scope.refID = response.data.id;
+                $scope.loading = '';
             });
         };
     }]);
