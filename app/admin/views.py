@@ -1,9 +1,11 @@
 import json
 import os
+import re
 from flask import url_for, redirect, flash, current_app, request
 from flask.ext.admin import AdminIndexView, expose
 from flask.ext.login import current_user, login_user, logout_user
-from wtforms import PasswordField
+import requests
+from wtforms import PasswordField, StringField
 import yaml
 from app.models import db, Section, User, Image, File, CssFile, JsFile, Page
 from app.upload import wiki_login, wiki_logout
@@ -131,6 +133,16 @@ class IndexView(AdminIndexView):
         logout_user()
         return redirect(url_for('.index'))
 
+    @expose('/getref', methods=['POST'])
+    def getref(self):
+        data = json.loads(request.data.decode())
+        doi = data['doi']
+        r = requests.get('http://dx.doi.org/' + doi, headers={'accept': 'text/x-bibliography; style=apa'})
+        firstauthor = r.text.split(',')[0]
+        year = re.search('\((\d*)\)', r.text).groups()[0]
+        id = '{}{}'.format(firstauthor, year)
+        return json.dumps({'reference': r.text, 'id': id})
+
 
 class ThemeView(BaseView):
     @expose('/', methods=['GET', 'POST'])
@@ -227,3 +239,19 @@ class SettingsView(BaseView):
                 form[k.lower()].data = current_app.config[k]
 
         return self.render('admin/settings.html', form=form)
+
+
+class ReferenceView(ModelView):
+    form_overrides = dict(reference=StringField)
+    form_widget_args = {
+        'reference': {
+            'ng-model': 'reference'
+        },
+        'ref_id': {
+            'ng-model': 'refID'
+        }
+    }
+
+
+    create_template = 'admin/references/create.html'
+    edit_template = 'admin/references/edit.html'

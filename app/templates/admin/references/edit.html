@@ -1,0 +1,32 @@
+{% extends 'admin/model/edit.html' %}
+{% block body %}
+<div ng-app="referenceApp" ng-controller="referenceController">
+{{ super() }}
+<form ng-submit="getReference()">
+    <div class="row-fluid input-append">
+        <input type="text" ng-model="doi"  size="30"
+               placeholder="DOI">
+        <input class="btn" type="submit" value="get reference">
+    </div>
+</form>
+</div>
+{% endblock body %}
+{% block tail %}
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.4/angular.min.js"></script>
+    <script>
+    var app = angular.module('referenceApp', []);
+    app.controller('referenceController', ['$scope', '$http', function($scope, $http){
+        $scope.reference = '{{ form.reference.data }}';
+        $scope.refID = '{{ form.ref_id.data }}';
+        $scope.doi = '';
+
+        $scope.getReference = function() {
+            $http.post('/admin/getref', {'doi': $scope.doi})
+            .then(function(response) {
+                $scope.reference = response.data.reference;
+                $scope.refID = response.data.id;
+            });
+        };
+    }]);
+    </script>
+{% endblock %}

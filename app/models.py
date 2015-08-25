@@ -1,3 +1,4 @@
+import re
 from flask import url_for, render_template_string, current_app
 from flask.ext.login import UserMixin, LoginManager
 from flask.ext.sqlalchemy import SQLAlchemy
@@ -39,6 +40,15 @@ class Page(db.Model, TextUploader):
     def __repr__(self):
         return u'{}'.format(self.name)
 
+    def convert_references(self, references):
+        def replace_reference(matchobj):
+            id = matchobj.groups()[0]
+            ref = Reference.query.filter_by(ref_id=id).first().reference
+            if ref not in references:
+                references.append(ref)
+            return '[{}]'.format(references.index(ref)+1)
+        return replace_reference
+
     def render(self):
         kw = {'sections': self.sections,
               'persons': Person.query.order_by('position').all(),
@@ -47,11 +57,19 @@ class Page(db.Model, TextUploader):
               'files': {f.name: f for f in File.query.all()},
               'adv_main_menu': MenuItem.query.filter_by(parent=None),
               'image': self.image,
-              'timeline': sorted(Timeline.query.all(), key= lambda x: x.date, reverse=True),
+              'timeline': sorted(Timeline.query.all(), key=lambda x: x.date, reverse=True),
               'name': self.name,
               'css_files': CssFile.query.filter_by(active=True).order_by(CssFile.position),
               'js_files': JsFile.query.filter_by(active=True).order_by(JsFile.position),
               'namespace': current_app.config['NAMESPACE']}
+
+        rendered_sections = []
+        references = []
+        for section in self.sections:
+            section_html = section.template.render(section=section, references=references, **kw)
+            section_html = re.sub(r'\\cite\{(.*?)\}', self.convert_references(references), section_html)
+            rendered_sections.append(section_html)
+        kw.update({'rendered_sections': rendered_sections})
 
         return self.template.render(**kw)
 
@@ -193,6 +211,16 @@ class Timeline(db.Model):
 
     def __repr__(self):
         return u'{}'.format(self.title)
+
+
+class Reference(db.Model):
+    __tablename__ = 'references'
+    id = db.Column(db.Integer, primary_key=True)
+    reference = db.Column(db.UnicodeText(length=2**31))
+    ref_id = db.Column(db.Unicode(32))
+
+    def __repr__(self):
+        return u'{}'.format(self.reference)
 
 
 # Login to the admin page etc..
