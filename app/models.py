@@ -3,6 +3,7 @@ from flask import url_for, render_template_string, current_app
 from flask.ext.login import UserMixin, LoginManager
 from flask.ext.sqlalchemy import SQLAlchemy
 from scss import Compiler
+from sqlalchemy import desc
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.upload import TextUploader, FileUploader
@@ -42,34 +43,33 @@ class Page(db.Model, TextUploader):
 
     def convert_references(self, references):
         def replace_reference(matchobj):
-            id = matchobj.groups()[0]
-            ref = Reference.query.filter_by(ref_id=id).first().reference
-            if ref not in references:
-                references.append(ref)
-            return '[{}]'.format(references.index(ref)+1)
+            ids = matchobj.groups()[0].split(',')
+            refs = [Reference.query.filter_by(ref_id=id).first().reference for id in ids]
+            for ref in refs:
+                if ref not in references:
+                    references.append(ref)
+            return '[{}]'.format(','.join([str(references.index(ref)+1) for ref in refs]))
         return replace_reference
 
     def render(self):
-        kw = {'sections': self.sections,
-              'persons': Person.query.order_by('position').all(),
-              'main_menu': Page.query.order_by('position').all(),
+        kw = {'persons': Person.query.order_by('position').all(),
+              'main_menu': MenuItem.query.filter_by(parent=None).all() or Page.query.order_by('position').all(),
               'images': {image.name: image for image in Image.query.all()},
               'files': {f.name: f for f in File.query.all()},
-              'adv_main_menu': MenuItem.query.filter_by(parent=None),
               'image': self.image,
-              'timeline': sorted(Timeline.query.all(), key=lambda x: x.date, reverse=True),
+              'timeline': Timeline.query.order_by(desc(Timeline.date)).all(),
               'name': self.name,
               'css_files': CssFile.query.filter_by(active=True).order_by(CssFile.position),
               'js_files': JsFile.query.filter_by(active=True).order_by(JsFile.position),
               'namespace': current_app.config['NAMESPACE']}
 
-        rendered_sections = []
+        sections = []
         references = []
         for section in self.sections:
             section_html = section.template.render(section=section, references=references, **kw)
             section_html = re.sub(r'\\cite\{(.*?)\}', self.convert_references(references), section_html)
-            rendered_sections.append(section_html)
-        kw.update({'rendered_sections': rendered_sections})
+            sections.append(section_html)
+        kw.update({'sections': sections})
 
         return self.template.render(**kw)
 
