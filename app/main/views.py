@@ -1,5 +1,7 @@
 import os
-from flask import url_for, redirect, current_app, render_template, send_from_directory
+import re
+from flask import url_for, redirect, current_app, render_template, send_from_directory, request, jsonify
+import requests
 from werkzeug.exceptions import NotFound
 from app.main import main
 from app.models import Page, JsFile, Image, File, CssFile
@@ -46,3 +48,25 @@ def ckedit(path):
     dirname = os.path.dirname(full_path)
 
     return send_from_directory(dirname, basename)
+
+
+def make_reference_link(reference):
+    return '<a href="http://dx.doi.org/{}" target="_blank">{}</a>'.format(*reference.groups()[::-1])
+
+@main.route('/getref', methods=['POST'])
+def getref():
+    doi = request.get_json()['doi']
+    r = requests.get('http://dx.doi.org/' + doi, headers={'accept': 'text/x-bibliography; style=apa'})
+    r.encoding = 'utf-8'
+    reference = r.text
+
+    try:
+        firstauthor = reference.split(',')[0]
+        year = re.search('\((\d*)\)', reference).groups()[0]
+        id = '{}{}'.format(firstauthor, year)
+        reference = re.sub('(doi:(.*))', make_reference_link, reference)
+        response = jsonify({'reference': reference, 'id': id})
+    except AttributeError:
+        response = jsonify({'error': 'Could not resolve DOI.'})
+        response.status_code = 404
+    return response

@@ -1,10 +1,7 @@
-import json
 import os
-import re
 from flask import url_for, redirect, flash, current_app, request
 from flask.ext.admin import AdminIndexView, expose
 from flask.ext.login import current_user, login_user, logout_user
-import requests
 from wtforms import PasswordField, StringField
 import yaml
 from app.models import db, Section, User, Image, File, CssFile, JsFile, Page
@@ -133,17 +130,6 @@ class IndexView(AdminIndexView):
         logout_user()
         return redirect(url_for('.index'))
 
-    @expose('/getref', methods=['POST'])
-    def getref(self):
-        data = json.loads(request.data.decode())
-        doi = data['doi']
-        r = requests.get('http://dx.doi.org/' + doi, headers={'accept': 'text/x-bibliography; style=apa'})
-        r.encoding = 'utf-8'
-        firstauthor = r.text.split(',')[0]
-        year = re.search('\((\d*)\)', r.text).groups()[0]
-        id = '{}{}'.format(firstauthor, year)
-        return json.dumps({'reference': r.text, 'id': id})
-
 
 class ThemeView(BaseView):
     @expose('/', methods=['GET', 'POST'])
@@ -156,7 +142,7 @@ class UploadView(BaseView):
 
     @expose('/wikilogin', methods=['POST'])
     def login(self):
-        data = json.loads(request.data.decode())
+        data = request.get_json()
         if wiki_login(data['username'], data['password']):
             return 'Success'
         return 'Error'
@@ -168,38 +154,33 @@ class UploadView(BaseView):
 
     @expose('/pageupload', methods=['POST'])
     def pageupload(self):
-        data = json.loads(request.data.decode())
-        page = data['page']
+        page = request.get_json()['page']
         Page.query.filter_by(name=page).first().upload()
         return 'Page Uploaded'
 
     @expose('/fileupload', methods=['POST'])
     def fileupload(self):
-        data = json.loads(request.data.decode())
-        file = data['file']
+        file = request.get_json()['file']
         File.query.filter_by(name=file).first().upload()
         return 'File Uploaded'
 
 
     @expose('/imageupload', methods=['POST'])
     def imageupload(self):
-        data = json.loads(request.data.decode())
-        image = data['image']
+        image = request.get_json()['image']
         Image.query.filter_by(name=image).first().upload()
         return 'Image Uploaded'
 
     @expose('/cssupload', methods=['POST'])
     def cssupload(self):
-        data = json.loads(request.data.decode())
-        css = data['css']
+        css = request.get_json()['css']
         CssFile.query.filter_by(url=css).first().upload()
         return 'CSS Uploaded'
 
 
     @expose('/jsupload', methods=['POST'])
     def jsupload(self):
-        data = json.loads(request.data.decode())
-        js = data['js']
+        js = request.get_json()['js']
         JsFile.query.filter_by(url=js).first().upload()
         return 'JS Uploaded'
 

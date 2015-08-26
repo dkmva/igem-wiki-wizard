@@ -5,12 +5,14 @@
 {% block body %}
 <div ng-app="referenceApp" ng-controller="referenceController">
 {{ super() }}
+{% raw %}
 <form ng-submit="getReference()" class="form-inline">
-    <input type="text" ng-model="doi"  size="30"
-           placeholder="DOI">
-    <input class="btn" type="submit" value="get reference">
-    <i class="fa" ng-class="loading"></i>
+    <input type="text" ng-model="doi" placeholder="DOI">
+    <input class="btn" type="submit" value="get reference" ng-disabled="invalidDOI()">
+    <i class="fa fa-spinner fa-spin" ng-show="loading"></i>
+    <div ng-show="invalidDOI()" class="control-group error"><span class="help-inline">Invalid DOI</span></div>
 </form>
+{% endraw %}
 </div>
 {% endblock body %}
 {% block tail %}
@@ -21,16 +23,23 @@
         $scope.reference = '{{ form.reference.data or '' }}';
         $scope.refID = '{{ form.ref_id.data or '' }}';
         $scope.doi = '';
-        $scope.loading = '';
+        $scope.loading = false;
 
         $scope.getReference = function() {
-            $scope.loading = 'fa-spinner fa-spin';
-            $http.post('/admin/getref', {'doi': $scope.doi})
+            $scope.loading = true;
+            $http.post('/getref', {'doi': $scope.doi})
             .then(function(response) {
                 $scope.reference = response.data.reference;
                 $scope.refID = response.data.id;
-                $scope.loading = '';
+                $scope.loading = false;
+            }, function(response){
+                $scope.loading = false;
+                alert(response.data.error);
             });
+        };
+
+        $scope.invalidDOI = function(){
+            return !$scope.doi.match(/^10\.\S+$/gi);
         };
     }]);
     </script>
