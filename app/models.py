@@ -12,14 +12,15 @@ db = SQLAlchemy()
 login_manager = LoginManager()
 
 
-class Person(db.Model):
-    __tablename__ = 'persons'
+class Entity(db.Model):
+    __tablename__ = 'entities'
     id = db.Column(db.Integer, primary_key=True)
     position = db.Column(db.Integer)
     name = db.Column(db.Unicode(64), unique=True)
     role = db.Column(db.Unicode(64))
     image = db.relationship("Image")
     description = db.Column(db.Text())
+    link = db.Column(db.Unicode(128))
     image_id = db.Column(db.Integer, db.ForeignKey("images.id"))
 
     def __repr__(self):
@@ -38,6 +39,10 @@ class Page(db.Model, TextUploader):
     template_id = db.Column(db.Integer, db.ForeignKey("templates.id"))
     sections = db.relationship('Section', backref='page', order_by='Section.position')
 
+    @property
+    def href(self):
+        return url_for('main.wiki', path=self.url, namespace=current_app.config['NAMESPACE'])
+
     def __repr__(self):
         return u'{}'.format(self.name)
 
@@ -53,7 +58,7 @@ class Page(db.Model, TextUploader):
 
     def render(self):
         kw = {'sections': self.sections,
-              'persons': Person.query.order_by('position').all(),
+              'entities': Entity.query.order_by('position').all(),
               'main_menu': MenuItem.query.filter_by(parent=None).all() or Page.query.order_by('position').all(),
               'images': {image.name: image for image in Image.query.all()},
               'files': {f.name: f for f in File.query.all()},
@@ -161,7 +166,7 @@ class MenuItem(db.Model):
     @property
     def href(self):
         if self.page:
-            return url_for('main.wiki', path=self.page.url, namespace=current_app.config['NAMESPACE'])
+            return self.page.href
         return u'{}'.format(self.url or "")
 
 

@@ -1,14 +1,14 @@
 from flask.ext.admin import Admin
-from .views import IndexView, PageView, SectionView, PersonView, TimeLineView, ImageView, FileView, \
+from .views import IndexView, PageView, SectionView, EntityView, TimeLineView, ImageView, FileView, \
     TemplateView, CssView, JsView, ThemeView, SettingsView, UploadView, MenuItemView, UserView, ReferenceView
-from ..models import db, Page, Section, Person, Timeline, Image, File, Template, CssFile, JsFile, MenuItem, User, \
+from ..models import db, Page, Section, Entity, Timeline, Image, File, Template, CssFile, JsFile, MenuItem, User, \
     Reference
 
 admin = Admin(name='Wiki Wizard', index_view=IndexView(), base_template='admin/my_master.html')
 
 admin.add_view(PageView(Page, db.session, name='Pages', category='Content'))
 admin.add_view(SectionView(Section, db.session, name='Sections', category='Content'))
-admin.add_view(PersonView(Person, db.session, name='Persons', category='Content'))
+admin.add_view(EntityView(Entity, db.session, name='Entities', category='Content'))
 admin.add_view(TimeLineView(Timeline, db.session, category='Content'))
 admin.add_view(MenuItemView(MenuItem, db.session, name='Menu', category='Content'))
 admin.add_view(ReferenceView(Reference, db.session, name='References', category='Content'))

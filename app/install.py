@@ -3,7 +3,7 @@ import random
 import string
 import yaml
 
-from app.models import db, MenuItem, Page, Section, Person
+from app.models import db, MenuItem, Page, Section, Entity
 from app.themes import load_theme
 
 pages = [
@@ -88,10 +88,10 @@ def install_data():
     db.session.add(section)
 
     mem1desc = u'<p>Information about team members can be written in the administration panel' \
-               u' under Content -&gt; Persons.</p><p>Persons with role assigned as Member will be shown here.</p>'
-    member = Person(name=u'Team Member 1', description=mem1desc, role=u'Member', position=1)
+               u' under Content -&gt; Entities.</p><p>Entities with role assigned as Member will be shown here.</p>'
+    member = Entity(name=u'Team Member 1', description=mem1desc, role=u'Member', position=1)
     db.session.add(member)
-    member = Person(name=u'Team Member 2', description=u'', role=u'Member', position=2)
+    member = Entity(name=u'Team Member 2', description=u'', role=u'Member', position=2)
     db.session.add(member)
 
     db.session.commit()

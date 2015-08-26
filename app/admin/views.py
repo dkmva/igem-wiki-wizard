@@ -22,9 +22,9 @@ class SectionView(ModelImageView):
     column_default_sort = (Section.position, False)
 
 
-class PersonView(ModelImageView):
+class EntityView(ModelImageView):
     column_filters = ('role',)
-    column_list = ('position', 'image', 'name', 'role', 'description')
+    column_list = ('position', 'image', 'name', 'role', 'description', 'link')
     column_default_sort = 'position'
 
 
