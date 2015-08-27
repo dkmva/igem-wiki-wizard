@@ -1,3 +1,5 @@
+from itertools import groupby
+from operator import itemgetter
 import re
 from flask import url_for, render_template_string, current_app
 from flask.ext.login import UserMixin, LoginManager
@@ -27,6 +29,34 @@ class Entity(db.Model):
         return u'{}'.format(self.name)
 
 
+def convert_references(references):
+        def replace_reference(matchobj):
+            ids = matchobj.groups()[0].split(',')
+
+            # Build list of references from ids.
+            refs = []
+            for id in ids:
+                r = Reference.query.filter_by(ref_id=id).first()
+                if r:
+                    refs.append(r.reference)
+                else:
+                    refs.append(None)
+
+            # Add new references to the reference list.
+            for ref in refs:
+                if ref and ref not in references:
+                    references.append(ref)
+
+            # Sort references, change unknown references to ? and  compress 3 or more sequential references.
+            refs = sorted([references.index(ref)+1 if ref else -1 for ref in refs])
+            refs = [map(itemgetter(1), g) for k, g in groupby(enumerate(refs), lambda (i,x): i-x)]
+            refs = ['{}-{}'.format(min(e), max(e)) if len(e) > 2 else ','.join([str(e) for e in e]) for e in refs]
+            return '[{}]'.format(','.join(refs)).replace('-1', '?')
+        return replace_reference
+
+cite_pattern = re.compile(r'\\cite\{(.*?)\}')
+
+
 class Page(db.Model, TextUploader):
     __tablename__ = 'pages'
     id = db.Column(db.Integer, primary_key=True)
@@ -46,16 +76,6 @@ class Page(db.Model, TextUploader):
     def __repr__(self):
         return u'{}'.format(self.name)
 
-    def convert_references(self, references):
-        def replace_reference(matchobj):
-            ids = matchobj.groups()[0].split(',')
-            refs = [Reference.query.filter_by(ref_id=id).first().reference for id in ids]
-            for ref in refs:
-                if ref not in references:
-                    references.append(ref)
-            return '[{}]'.format(','.join([str(references.index(ref)+1) for ref in refs]))
-        return replace_reference
-
     def render(self):
         kw = {'sections': self.sections,
               'entities': Entity.query.order_by('position').all(),
@@ -72,11 +92,11 @@ class Page(db.Model, TextUploader):
         rendered_sections = []
         references = []
         for section in self.sections:
-            section_html = section.template.render(section=section, references=references, **kw)
-            section_html = re.sub(r'\\cite\{(.*?)\}', self.convert_references(references), section_html)
-            rendered_sections.append(section_html)
+            if section.template:
+                section_html = section.template.render(section=section, references=references, **kw)
+                section_html = re.sub(cite_pattern, convert_references(references), section_html)
+                rendered_sections.append(section_html)
         kw.update({'rendered_sections': rendered_sections})
-
         return self.template.render(**kw)
 
     def render_external(self):
