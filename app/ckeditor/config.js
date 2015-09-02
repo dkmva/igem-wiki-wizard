@@ -9,7 +9,7 @@ CKEDITOR.editorConfig = function( config ) {
 	// config.uiColor = '#AADC6E';
 
 
-	//config.extraPlugins = 'fontawesome';
+	config.mathJaxLib = '//cdn.mathjax.org/mathjax/2.2-latest/MathJax.js?config=TeX-AMS_HTML';
 	config.contentsCss = '/ckeditor/fonts/bootstrap-font-awesome.min.css';
 	config.allowedContent = true;
 
