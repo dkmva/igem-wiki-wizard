@@ -85,8 +85,8 @@ class Page(db.Model, TextUploader):
               'image': self.image,
               'timeline': Timeline.query.order_by(desc(Timeline.date)).all(),
               'name': self.name,
-              'css_files': CssFile.query.filter_by(active=True).order_by(CssFile.position),
-              'js_files': JsFile.query.filter_by(active=True).order_by(JsFile.position),
+              'css_files': [f[0] for f in CssFile.query.with_entities(CssFile.url).filter_by(active=True).order_by(CssFile.position).all()],
+              'js_files': [f[0] for f in JsFile.query.with_entities(JsFile.url).filter_by(active=True).order_by(JsFile.position).all()],
               'namespace': current_app.config['NAMESPACE']}
 
         rendered_sections = []
@@ -209,8 +209,8 @@ class Section(db.Model):
 class Image(db.Model, FileUploader):
     __tablename__ = 'images'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Unicode(64), unique=True)
-    path = db.Column(db.Unicode(128))
+    name = db.Column(db.Unicode(64), unique=True, nullable=False)
+    path = db.Column(db.Unicode(128), unique=True, nullable=False)
     external_path = db.Column(db.Unicode(128))
 
     def __repr__(self):
@@ -220,8 +220,8 @@ class Image(db.Model, FileUploader):
 class File(db.Model, FileUploader):
     __tablename__ = 'files'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Unicode(64), unique=True)
-    path = db.Column(db.Unicode(128))
+    name = db.Column(db.Unicode(64), unique=True, nullable=False)
+    path = db.Column(db.Unicode(128), unique=True, nullable=False)
     external_path = db.Column(db.Unicode(128))
 
     def __repr__(self):
