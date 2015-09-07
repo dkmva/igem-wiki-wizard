@@ -8,6 +8,7 @@ from flask.ext.login import current_user
 from markupsafe import Markup
 from wtforms import TextAreaField
 from wtforms.ext.sqlalchemy import orm
+from wtforms.validators import InputRequired
 from wtforms.widgets import TextArea
 
 static_folder = os.path.join(os.environ.get('OPENSHIFT_DATA_DIR', 'app'), 'static')
@@ -106,7 +107,8 @@ class FileUploadView(UploadView):
         'path': form.FileUploadField('File',
                                      base_path=static_folder,
                                      allowed_extensions=['pdf', 'ppt', 'txt', 'zip', 'mp3', 'mp4', 'webm', 'mov', 'swf', 'xls', 'm', 'ogg', 'gb', 'xls', 'tif', 'tiff', 'fcs', 'otf', 'eot', 'ttf', 'woff'],
-                                     namegen=rename)
+                                     namegen=rename,
+                                     validators=[InputRequired()])
     }
 
 
@@ -116,6 +118,7 @@ class ImageUploadView(UploadView):
                                       base_path=static_folder,
                                       thumbnail_size=(100, 100, True),
                                       allowed_extensions=['png', 'gif', 'jpg', 'jpeg'],
-                                      namegen=rename)
+                                      namegen=rename,
+                                      validators=[InputRequired()])
     }
 
