@@ -51,7 +51,7 @@ def convert_references(references):
             refs = sorted([references.index(ref)+1 if ref else -1 for ref in refs])
             refs = [map(itemgetter(1), g) for k, g in groupby(enumerate(refs), lambda (i,x): i-x)]
             refs = ['{}-{}'.format(min(e), max(e)) if len(e) > 2 else ','.join([str(e) for e in e]) for e in refs]
-            return '[{}]'.format(','.join(refs)).replace('-1', '?')
+            return '[{}]'.format(','.join(refs)).replace('-1,', '?,')
         return replace_reference
 
 cite_pattern = re.compile(r'\\cite\{(.*?)\}')
@@ -194,7 +194,7 @@ class Section(db.Model):
     __tablename__ = 'sections'
     id = db.Column(db.Integer, primary_key=True)
     position = db.Column(db.Integer)
-    name = db.Column(db.String(64), unique=True)
+    name = db.Column(db.String(64))
     image = db.relationship("Image")
     image_id = db.Column(db.Integer, db.ForeignKey("images.id"))
     template = db.relationship('Template')

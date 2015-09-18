@@ -26,15 +26,20 @@ class TextUploader(object):
         if self.url:
             edit_path += '/{}'.format(self.url)
 
-        response = session.get('{}/wiki/index.php?title={}&action=edit'.format(current_app.config.get('BASE_URL'), edit_path))
+        response_code = 0
+        while response_code != 200:
+            response = session.get('{}/wiki/index.php?title={}&action=edit'.format(current_app.config.get('BASE_URL'), edit_path))
+            response_code = response.status_code
 
         data = scrape_inputs(response.text)
 
         html = self.render_external()
         data['wpTextbox1'] = html
 
-        session.post("{}/wiki/index.php?title={}&action=submit".format(current_app.config.get('BASE_URL'), edit_path), data)
-
+        response_code = 0
+        while response_code != 200:
+            response = session.post("{}/wiki/index.php?title={}&action=submit".format(current_app.config.get('BASE_URL'), edit_path), data)
+            response_code = response.status_code
         return
 
     def render_external(self):
@@ -47,7 +52,10 @@ class FileUploader(object):
 
     def upload(self):
 
-        response = session.get('{}/Special:Upload'.format(current_app.config.get('BASE_URL')))
+        response_code = 0
+        while response_code != 200:
+            response = session.get('{}/Special:Upload'.format(current_app.config.get('BASE_URL')))
+            response_code = response.status_code
 
         data = scrape_inputs(response.text)
 
@@ -59,7 +67,11 @@ class FileUploader(object):
         abs_path = os.path.join(current_app.static_folder, self.path)
         files = {'wpUploadFile': open(abs_path, 'rb')}
 
-        response = session.post('{}/Special:Upload'.format(current_app.config.get('BASE_URL')), data=data, files=files)
+        response_code = 0
+        while response_code != 200:
+            response = session.post('{}/Special:Upload'.format(current_app.config.get('BASE_URL')), data=data, files=files)
+            response_code = response.status_code
+
         #Find the external path
         m = re.search('"(/wiki/images/.+?)"', response.text)
         self.external_path = m.group(1)

@@ -1,8 +1,9 @@
-from flask.ext.script import Manager
+from flask.ext.script import Manager, Server
 from app import create_app, db
 
 app = create_app()
 manager = Manager(app)
+manager.add_command("runserver", Server(port=8000))
 
 @manager.command
 def create():
