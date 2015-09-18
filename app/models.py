@@ -6,6 +6,7 @@ from flask.ext.login import UserMixin, LoginManager
 from flask.ext.sqlalchemy import SQLAlchemy
 from scss import Compiler
 from sqlalchemy import desc
+from sqlalchemy.orm import backref
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.upload import TextUploader, FileUploader
@@ -176,7 +177,7 @@ class MenuItem(db.Model):
     page_id = db.Column(db.Integer, db.ForeignKey("pages.id"))
     page = db.relationship('Page')
     parent_id = db.Column(db.Integer, db.ForeignKey("menu_items.id"))
-    parent = db.relationship('MenuItem', remote_side=[id], backref='children')
+    parent = db.relationship('MenuItem', remote_side=[id], backref=backref('children', order_by="MenuItem.position"))
 
     def __repr__(self):
         if self.page:
