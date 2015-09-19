@@ -1,18 +1,12 @@
 from flask.ext.wtf import Form
-from wtforms import StringField, PasswordField, SubmitField, SelectMultipleField, widgets, BooleanField, ValidationError
-from wtforms.validators import EqualTo, Length, Regexp, InputRequired
+from flask.ext.wtf.file import FileField, FileAllowed, FileRequired
+from wtforms import StringField, SubmitField, BooleanField, PasswordField, ValidationError
+from wtforms.validators import InputRequired, Length, Regexp, EqualTo
 from app.models import User
-
-
-class MultiCheckboxField(SelectMultipleField):
-    widget = widgets.ListWidget(prefix_label=False)
-    option_widget = widgets.CheckboxInput()
 
 
 class SettingsForm(Form):
     namespace = StringField('Namespace', validators=[InputRequired()])
-    login_url = StringField('Login URL', validators=[InputRequired()])
-    logout_url = StringField('Logout URL', validators=[InputRequired()])
     base_url = StringField('Base URL', validators=[InputRequired()])
     show_register_page = BooleanField('Show Admin Register Page')
     submit = SubmitField('Submit')
@@ -39,3 +33,11 @@ class RegistrationForm(Form):
     def validate_username(self, field):
         if User.query.filter_by(username=field.data).first():
             raise ValidationError('Username already in use.')
+
+
+class ThemeForm(Form):
+    theme = FileField('Theme', validators=[
+        FileRequired(),
+        FileAllowed(['zip'], 'Zip files only!')
+    ])
+    submit = SubmitField('Upload')

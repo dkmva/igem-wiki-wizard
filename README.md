@@ -27,5 +27,3 @@ To deploy a clone of this application using the [`rhc` command line tool](http:/
 Or [link to a web-based clone+deploy](https://openshift.redhat.com/app/console/application_type/custom?cartridges%5B%5D=python-2.7&cartridges%5B%5D=mysql-5.1&initial_git_url=https://github.com/dkmva/igem-wiki-wizard.git) on [OpenShift Online](http://OpenShift.com): 
 
     https://openshift.redhat.com/app/console/application_type/custom?cartridges%5B%5D=python-2.7&cartridges%5B%5D=mysql-5.1&initial_git_url=https://github.com/dkmva/igem-wiki-wizard.git
-
-When running on OpenShift, after changing settings the application should be restarted. Changing settings should only be necessary once.

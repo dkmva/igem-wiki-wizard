@@ -1,0 +1,89 @@
+{%- if not modal -%}
+  {% extends 'admin/master.html' %}
+{%- endif -%}
+{% import 'admin/lib.html' as lib with context %}
+
+{% block head %}
+<style type="text/css" media="screen">
+#editor {
+  margin-left: 15px;
+  margin-top: 15px;
+  width: 1000px;
+  height: {{ 35*16 }}px;
+}
+</style>
+    {{ super() }}
+{% endblock %}
+
+{% macro check_error(error) %}
+    {% if error %}
+      <span>{{ _gettext('This file cannot be edited for now.') }}</span>
+    {% else %}
+      {{ caller() }}
+    {% endif %}
+{% endmacro %}
+
+{% block body %}
+    {%- if modal -%}
+      {# content added to modal-content #}
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        {% block header_text %}
+            <h3>{{ _gettext('Editing %(path)s', path=path) }}</h3>
+        {% endblock %}
+      </div>
+      <div class="modal-body">
+        {% call check_error(error) %}
+          {{ lib.render_form(form, dir_url, action=request.url, is_modal=True) }}
+        {% endcall %}
+      </div>
+    {%- else -%}
+      {{ self.header_text() }} <button class="btn btn-primary" onclick="TogetherJS(this); return false;">Start TogetherJS</button>
+      {% call check_error(error) %}
+        {{ lib.render_form(form, dir_url) }}
+      {% endcall %}
+    {%- endif -%}
+{% endblock %}
+
+{% block tail %}
+    {%- if modal -%}
+    <script>
+    // fixes "remote modal shows same content every time", avoiding the flicker
+    $('body').on('hidden.bs.modal', '.modal', function() {
+        $(this).removeData('bs.modal').find(".modal-content").empty();
+    });
+    </script>
+    {%- endif -%}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.0/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script>
+        $('textarea[name="content"]').parent().append('<div id="editor">}</div>');
+        var editor = ace.edit("editor");
+        editor.setTheme("ace/theme/dawn");
+        editor.getSession().setTabSize(2);
+        editor.getSession().setUseWrapMode(true);
+        var textarea = $('textarea[name="content"]').hide();
+        editor.getSession().setValue(textarea.val());
+        editor.getSession().on('change', function(){
+          textarea.val(editor.getSession().getValue());
+        });
+        {% set extension = path.split('.')[-1] %}
+        {% if extension in 'js' %}
+        editor.getSession().setMode("ace/mode/javascript");
+        {% elif extension == 'css'  %}
+        editor.getSession().setMode("ace/mode/sass");
+        {% elif extension == 'html' %}
+        editor.getSession().setMode("ace/mode/html");
+        {% else %}
+        editor.getSession().setMode("ace/mode/json");
+        {% endif %}
+    </script>
+    <script>
+      TogetherJSConfig_findRoom = {prefix: "wikiwiz{{ namespace | replace('-', '') }}", max: 25};
+      //TogetherJSConfig_autoStart = true;
+      TogetherJSConfig_suppressJoinConfirmation = true;
+      TogetherJSConfig_getUserName = function () {return '{{ current_user.username }}';};
+      TogetherJSConfig_storagePrefix = "wikiwiz_{{ namespace | replace('-', '') }}";
+    </script>
+    <script src="{{ url_for('static', filename='togetherjs/togetherjs-min.js') }}"></script>
+{% endblock %}
+

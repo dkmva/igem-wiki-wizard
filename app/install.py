@@ -3,39 +3,38 @@ import random
 import string
 import yaml
 
-from app.models import db, MenuItem, Page, Section, Entity
-from app.themes import load_theme
+from app.models import db, MenuItem, Page, Section, Entity, Setting
 
 pages = [
-    ('Home', None),
-    ('Team', 'Team'),
-    ('Description', 'Description'),
-    ('Experiments & Protocols', 'Experiments'),
-    ('Results', 'Results'),
-    ('Design', 'Design'),
-    ('Team Parts', 'Parts'),
-    ('Basic Parts', 'Basic_Part'),
-    ('Composite Parts', 'Composite_Part'),
-    ('Part Collection', 'Part_Collection'),
-    ('Notebook', 'Notebook'),
-    ('Attributions', 'Attributions'),
-    ('Collaborations', 'Collaborations'),
-    ('Human Practices', 'Practices'),
-    ('Safety', 'Safety'),
-    ('Modeling', 'Modeling'),
-    ('Measurement', 'Measurement'),
-    ('Software', 'Software'),
-    ('Entrepreneurship', 'Entrepreneurship')]
+    (u'Home', u''),
+    (u'Team', u'Team'),
+    (u'Description', u'Description'),
+    (u'Experiments & Protocols', u'Experiments'),
+    (u'Results', u'Results'),
+    (u'Design', u'Design'),
+    (u'Team Parts', u'Parts'),
+    (u'Basic Parts', u'Basic_Part'),
+    (u'Composite Parts', u'Composite_Part'),
+    (u'Part Collection', u'Part_Collection'),
+    (u'Notebook', u'Notebook'),
+    (u'Attributions', u'Attributions'),
+    (u'Collaborations', u'Collaborations'),
+    (u'Human Practices', u'Practices'),
+    (u'Safety', u'Safety'),
+    (u'Modeling', u'Modeling'),
+    (u'Measurement', u'Measurement'),
+    (u'Software', u'Software'),
+    (u'Entrepreneurship', u'Entrepreneurship')]
 
 menu = [
     (None, 1, None),
     (None, 2, None),
-    ('Project', None, None),
+    (u'Project', None, None),
     (None, 3, 3),
     (None, 4, 3),
     (None, 5, 3),
     (None, 6, 3),
-    ('Parts', None, None),
+    (u'Parts', None, None),
     (None, 7, 8),
     (None, 8, 8),
     (None, 9, 8),
@@ -51,16 +50,17 @@ menu = [
     (None, 19, None)
 ]
 
-default_cfg = {'USER': {'BASE_URL': 'http://2015.igem.org',
-                        'LOGIN_URL': 'http://www.igem.org/Login',
-                        'LOGOUT_URL': 'http://igem.org/cgi/Logout.cgi',
-                        'NAMESPACE': None,
-                        'SHOW_REGISTER_PAGE': True},
-               'ADVANCED': {'DEBUG': True,
-                            'SECRET_KEY': ''.join(
-                                [random.choice(string.ascii_letters + string.digits) for n in xrange(50)]),
-                            'SQLALCHEMY_COMMIT_ON_TEARDOWN': True
-                            }}
+default_cfg = {'DEBUG': True,
+                'SECRET_KEY': ''.join([random.choice(string.ascii_letters + string.digits) for n in xrange(50)]),
+                 'SQLALCHEMY_COMMIT_ON_TEARDOWN': True,
+               }
+
+default_settings = [
+    Setting(name=u'namespace', value=u''),
+    Setting(name=u'base_url', value=u'2015.igem.org'),
+    Setting(name=u'show_register_page', value=u'true'),
+    Setting(name=u'theme', value=u'simple')
+]
 
 
 def make_config(config_folder):
@@ -69,10 +69,12 @@ def make_config(config_folder):
 
 
 def install_data():
-    load_theme('simple')
+
+    for setting in default_settings:
+        db.session.add(setting)
 
     for i, (name, url) in enumerate(pages, 1):
-        page = Page(name=name, url=url, template_id=1, position=i)
+        page = Page(name=name, url=url, template=u'base.html', position=i)
         db.session.add(page)
 
     for i, (name, page_id, parent_id) in enumerate(menu, 1):
@@ -82,9 +84,9 @@ def install_data():
     sec1html = u'<p>Content for pages can be written in the administration panel' \
                u' under Content -&gt; Pages or Content -&gt; Sections.</p>'
 
-    section = Section(name='Introduction', html=sec1html, page_id=1, template_id=3, position=1)
+    section = Section(name=u'Introduction', html=sec1html, page_id=1, template=u'section.html', position=1)
     db.session.add(section)
-    section = Section(name='Members', html=u'', page_id=2, template_id=2, position=1)
+    section = Section(name=u'Members', html=u'', page_id=2, template=u'members.html', position=1)
     db.session.add(section)
 
     mem1desc = u'<p>Information about team members can be written in the administration panel' \

@@ -18,7 +18,7 @@
             return $http.post('/admin/uploadview/wikilogin', {username: username, password: password});
         };
 
-        service.doLogout = function(username, password) {
+        service.doLogout = function() {
             _variables.status = 'Logging Out';
             return $http.get('/admin/uploadview/wikilogout');
         };
@@ -52,39 +52,16 @@
             return $q.all(promises);
         };
 
-        service.uploadImages = function(images) {
-            _variables.status = 'Uploading images';
-            var promises = images.map(function(image) {
-                return $http.post('/admin/uploadview/imageupload', {image: image.name}).then(function(){
+        service.uploadTheme = function(files) {
+            _variables.status = 'Uploading theme files';
+            var promises = files.map(function(file) {
+                return $http.post('/admin/uploadview/themeupload', {file: file.name}).then(function(){
                     return _variables.thingsDone += 1;
                 });
             });
 
             return $q.all(promises);
         };
-
-        service.uploadCSS = function(csss) {
-            _variables.status = 'Uploading CSS files';
-            var promises = csss.map(function(css) {
-                return $http.post('/admin/uploadview/cssupload', {css: css.name}).then(function(){
-                    return _variables.thingsDone += 1;
-                });
-            });
-
-            return $q.all(promises);
-        };
-
-        service.uploadJS = function(jss) {
-            _variables.status = 'Uploading JS files';
-            var promises = jss.map(function(js) {
-                return $http.post('/admin/uploadview/jsupload', {js: js.name}).then(function(){
-                    return _variables.thingsDone += 1;
-                });
-            });
-
-            return $q.all(promises);
-        };
-
 
         return service;
     }]);
@@ -100,31 +77,22 @@
             return ($scope.variables.thingsDone / $scope.variables.thingsToDo * 100 || 0);
         };
 
-        $scope.pages = [
-            {%- for e in pages -%}
+        {% for type, var in (('pages', pages), ('files', files), ('theme', theme)) %}
+        $scope.{{type}} = [
+            {%- for e in var -%}
                 {'name': '{{ e |safe }}', 'selected': false},
             {% endfor -%}
         ];
-        $scope.files = [
-            {%- for e in files -%}
-                {'name': '{{ e |safe }}', 'selected': false},
-            {% endfor -%}
-        ];
-        $scope.images = [
-            {%- for e in images -%}
-                {'name': '{{ e |safe }}', 'selected': false},
-            {% endfor -%}
-        ];
-        $scope.css = [
-            {%- for e in css -%}
-                {'name': '{{ e |safe }}', 'selected': false},
-            {% endfor -%}
-        ];
-        $scope.js = [
-            {%- for e in js -%}
-                {'name': '{{ e |safe }}', 'selected': false},
-            {% endfor -%}
-        ];
+        $scope.selected{{ type }} = false;
+        $scope.check{{ type }} = function () {
+            $scope.selected{{type}} != $scope.selected{{type}};
+
+            angular.forEach($scope.{{type}}, function (item) {
+                item.selected = $scope.selected{{type}};
+            });
+        };
+        {% endfor %}
+
 
         $scope.uploadPages = function () {
             return $filter('filter')($scope.pages, {'selected': true})
@@ -134,26 +102,16 @@
             return $filter('filter')($scope.files, {'selected': true})
         };
 
-        $scope.uploadImages = function () {
-            return $filter('filter')($scope.images, {'selected': true})
-        };
-
-        $scope.uploadCSS = function () {
-            return $filter('filter')($scope.css, {'selected': true})
-        };
-
-        $scope.uploadJS = function () {
-            return $filter('filter')($scope.js, {'selected': true})
+        $scope.uploadTheme = function () {
+            return $filter('filter')($scope.theme, {'selected': true})
         };
 
 
         $scope.uploadStuff = function() {
             $scope.barType = '';
-            var thingsToDo = $scope.uploadImages().length +
+            var thingsToDo = $scope.uploadTheme().length +
                              $scope.uploadFiles().length +
                              $scope.uploadPages().length +
-                             $scope.uploadCSS().length +
-                             $scope.uploadJS().length +
                              2;
 
             $scope.variables.thingsToDo = thingsToDo;
@@ -162,17 +120,13 @@
                 if (response.data == 'Success') {
                     $scope.variables.thingsDone += 1;
 
-                    return uploadFactory.uploadImages($scope.uploadImages()).then(function() {
+                    return uploadFactory.uploadTheme($scope.uploadTheme()).then(function() {
                         return uploadFactory.uploadFiles($scope.uploadFiles()).then(function() {
                             return uploadFactory.uploadPages($scope.uploadPages()).then(function() {
-                                return uploadFactory.uploadCSS($scope.uploadCSS()).then(function() {
-                                    return uploadFactory.uploadJS($scope.uploadJS()).then(function() {
-                                        return uploadFactory.doLogout().then(function() {
-                                            $scope.variables.thingsDone += 1;
-                                            return uploadFactory.finishUp().then(function(){
-                                                $scope.barType = 'bar-success';
-                                            });
-                                        });
+                                return uploadFactory.doLogout().then(function() {
+                                    $scope.variables.thingsDone += 1;
+                                    return uploadFactory.finishUp().then(function(){
+                                        $scope.barType = 'progress-bar-success';
                                     });
                                 });
                             });
@@ -181,7 +135,7 @@
 
                 } else {
                     $scope.variables.status = 'Could not login to the iGEM wiki. Wrong credentials?';
-                    $scope.barType = 'bar-danger';
+                    $scope.barType = 'progress-bar-danger';
                     $scope.variables.thingsDone = $scope.variables.thingsToDo;
                 }
             })
@@ -214,9 +168,9 @@
         {% raw %}
         <div ng-controller="uploadController">
             <div class="progress progress-striped active row-fluid">
-              <div class="bar" ng-class="barType" ng-style="{'width': percentage() + '%'}"><span>{{ variables.status }}</span></div>
+              <div class="progress-bar" ng-class="barType" ng-style="{'width': percentage() + '%'}"><span>{{ variables.status }}</span></div>
             </div>
-            <form ng-submit="uploadStuff()">
+            <form ng-submit="uploadStuff()" class="form-horizontal">
                 <div class="row-fluid input-append">
                     <input type="text" ng-model="username"  size="30"
                            placeholder="username">
@@ -225,38 +179,32 @@
                     <input class="btn" type="submit" value="upload">
                 </div>
                 <div class="row-fluid">
-                    <div class="span2">
-                        <h4>Pages</h4>
-                        <label ng-repeat="e in pages">
-                            <input type="checkbox" ng-model="e.selected">{{ e.name }}
-                        </label>
-                  </div>
-                  <div class="span2">
-                        <h4>Images</h4>
-                        <label ng-repeat="e in images">
-                           <input type="checkbox" ng-model="e.selected">{{ e.name }}
-                        </label>
-                  </div>
-                  <div class="span2">
-                        <h4>Files</h4>
-                        <label ng-repeat="e in files">
-                           <input type="checkbox" ng-model="e.selected">{{ e.name }}
-                        </label>
-                  </div>
-                  <div class="span2">
-                        <h4>CSS Files</h4>
-                        <label ng-repeat="e in css">
-                           <input type="checkbox" ng-model="e.selected">{{ e.name }}
-                        </label>
-                  </div>
-                  <div class="span2">
-                        <h4>Javascript Files</h4>
-                        <label ng-repeat="e in js">
-                           <input type="checkbox" ng-model="e.selected">{{ e.name }}
-                        </label>
-                  </div>
-              </div>
-          </form>
+                    <div class="col-xs-4">
+                        <h4>Pages <input type="checkbox" ng-model="selectedpages" ng-click="checkpages()" /></h4>
+                        <div class="checkbox" ng-repeat="e in pages">
+                            <label>
+                                <input type="checkbox" ng-model="e.selected">{{ e.name }}
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-xs-4">
+                        <h4>Files <input type="checkbox" ng-model="selectedfiles" ng-click="checkfiles()" /></h4>
+                        <div class="checkbox" ng-repeat="e in files">
+                            <label>
+                                <input type="checkbox" ng-model="e.selected">{{ e.name }}
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-xs-4" id="themefiles">
+                        <h4>Theme files <input type="checkbox" ng-model="selectedtheme" ng-click="checktheme()" /></h4>
+                        <div class="checkbox" ng-repeat="e in theme">
+                            <label>
+                                <input type="checkbox" ng-model="e.selected">{{ e.name }}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
         {% endraw %}
     </div>

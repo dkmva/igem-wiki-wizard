@@ -1,0 +1,17 @@
+{% if section.image %}
+<div class="img bg-{{ section.image.name | replace(' ', '-') }}"></div>
+{% endif %}
+<div id="{{ section.name | replace(' ', '-') | replace('(', '') | replace(')', '') | replace(',', '') | replace('!', '')  }}">
+  <div class="container">
+    <div class="row col-md-12">
+      <h1>
+        {{ section }}
+      </h1>
+      <ol>
+        {% for reference in references %}
+          <li>{{reference | safe}}</li>
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+</div>

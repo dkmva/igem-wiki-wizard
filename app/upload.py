@@ -3,7 +3,7 @@ import re
 import requests
 from bs4 import BeautifulSoup
 
-from flask import current_app
+from app.models import Setting, UploadedFile, Page, db
 
 session = requests.Session()
 
@@ -16,69 +16,6 @@ def scrape_inputs(html):
     return {inp['name']: inp['value'] for inp in soup.find_all('input') if inp['name'] in ['wpAutoSummary', 'wpEditToken', 'wpEdittime', 'wpWatchthis', 'wpIgnoreWarning', 'wpUpload']}
 
 
-class TextUploader(object):
-    """Used for uploading text based models.
-    Subclasses must define the render_external function, which will be used to upload."""
-
-    def upload(self):
-
-        edit_path = 'Team:{}'.format(current_app.config['NAMESPACE'])
-        if self.url:
-            edit_path += '/{}'.format(self.url)
-
-        response_code = 0
-        while response_code != 200:
-            response = session.get('{}/wiki/index.php?title={}&action=edit'.format(current_app.config.get('BASE_URL'), edit_path))
-            response_code = response.status_code
-
-        data = scrape_inputs(response.text)
-
-        html = self.render_external()
-        data['wpTextbox1'] = html
-
-        response_code = 0
-        while response_code != 200:
-            response = session.post("{}/wiki/index.php?title={}&action=submit".format(current_app.config.get('BASE_URL'), edit_path), data)
-            response_code = response.status_code
-        return
-
-    def render_external(self):
-        """Render function must be defined for upload function to work"""
-        raise NotImplementedError("Subclasses should implement this!")
-
-
-class FileUploader(object):
-    """Used for uploading binary models. Subclasses must have path defined"""
-
-    def upload(self):
-
-        response_code = 0
-        while response_code != 200:
-            response = session.get('{}/Special:Upload'.format(current_app.config.get('BASE_URL')))
-            response_code = response.status_code
-
-        data = scrape_inputs(response.text)
-
-        uploadname = self.name
-        if not os.path.splitext(self.name)[-1]:
-            uploadname += os.path.splitext(self.path)[-1]
-
-        data['wpDestFile'] = "{}_{}".format(current_app.config['NAMESPACE'], uploadname)
-        abs_path = os.path.join(current_app.static_folder, self.path)
-        files = {'wpUploadFile': open(abs_path, 'rb')}
-
-        response_code = 0
-        while response_code != 200:
-            response = session.post('{}/Special:Upload'.format(current_app.config.get('BASE_URL')), data=data, files=files)
-            response_code = response.status_code
-
-        #Find the external path
-        m = re.search('"(/wiki/images/.+?)"', response.text)
-        self.external_path = m.group(1)
-
-        return
-
-
 def wiki_login(username, password):
     """Function to log in into iGEM wiki.
     The iGEM wiki API is broken, so we need to use the normal website."""
@@ -88,7 +25,10 @@ def wiki_login(username, password):
                   'password':password,
                   'Login':'Log in'}
 
-    response = session.post(current_app.config['LOGIN_URL'], login_data)
+    response_code = 500
+    while response_code != 200:
+        response = session.post('http://www.igem.org/Login', login_data)
+        response_code = response.status_code
 
     logged_in = 'successfully logged' in response.text
 
@@ -97,6 +37,115 @@ def wiki_login(username, password):
 
 def wiki_logout():
     """Log out of the iGEM wiki again"""
-    response = session.get(current_app.config['LOGOUT_URL'])
+    response_code = 500
+    while response_code != 200:
+        response = session.get('http://igem.org/cgi/Logout.cgi')
+        response_code = response.status_code
 
+    return
+
+
+def upload_theme():
+    pass
+
+
+def upload_page(name):
+    base_url = Setting.query.filter_.by(name=u'base_url').first().value
+    namespace = Setting.query.filter_by(name=u'namespace').first().value
+
+    page = Page.query.filter_by(name=name)
+
+    edit_path = 'Team:{}'.format(namespace)
+    if page.url:
+        edit_path += '/{}'.format(page.url)
+
+    response_code = 0
+    while response_code != 200:
+        response = session.get('http://{}/wiki/index.php?title={}&action=edit'.format(base_url, edit_path))
+        response_code = response.status_code
+
+    data = scrape_inputs(response.text)
+
+    html = page.render_external()
+    data['wpTextbox1'] = html
+
+    response_code = 0
+    while response_code != 200:
+        response = session.post('http://{}/wiki/index.php?title={}&action=submit'.format(base_url, edit_path), data)
+        response_code = response.status_code
+    return
+
+
+def upload_binary_file(root, path):
+    abs_path = os.path.join(root, path)
+    basename = os.path.basename(abs_path)
+
+    base_url = Setting.query.filter_.by(name='base_url').first().value
+    namespace = Setting.query.filter_by(name='namespace').first().value
+
+    response_code = 0
+    while response_code != 200:
+        response = session.get('http://{}/Special:Upload'.format(base_url))
+        response_code = response.status_code
+
+    data = scrape_inputs(response.text)
+
+    data['wpDestFile'] = '{}_{}'.format(namespace, basename)
+    files = {'wpUploadFile': open(abs_path, 'rb')}
+
+    response_code = 0
+    while response_code != 200:
+        response = session.post('http://{}/Special:Upload'.format(base_url), data=data, files=files)
+        response_code = response.status_code
+
+    # Find the external path
+    m = re.search('"(/wiki/images/.+?)"', response.text)
+    external_path = m.group(1)
+
+    uploaded_file = UploadedFile.query.filter_by(name=basename)
+    if not uploaded_file:
+        uploaded_file = UploadedFile(name=basename, external_path=external_path)
+    uploaded_file.external_path = external_path
+    db.session.add(uploaded_file)
+
+
+file_pattern = re.compile(r'(?<=url\()([\'"]?.*?)(?=[?#\'")])')
+
+
+def convert_external(match_obj):
+    m = match_obj.groups()[0]
+    m0 = ''
+    if m[0] == '"' or m[0] == '\'':
+        m0 = m[0]
+        m = m[1:]
+    return '{}{}'.format(m0, UploadedFile.query.filter_by(name=os.path.basename(m)).external_path) or m
+
+
+def upload_text_file(root, path):
+    abs_path = os.path.join(root, path)
+    basename = os.path.basename(abs_path)
+
+    base_url = Setting.query.filter_.by(name='base_url').first().value
+    namespace = Setting.query.filter_by(name='namespace').first().value
+
+    edit_path = 'Team:{}'.format(namespace)
+    edit_path += '/{}'.format(basename.replace('.', ''))
+
+    with open(abs_path) as f:
+        content = f.read()
+
+    content = re.sub(file_pattern, convert_external, content)
+
+    response_code = 0
+    while response_code != 200:
+        response = session.get('http://{}/wiki/index.php?title={}&action=edit'.format(base_url, edit_path))
+        response_code = response.status_code
+
+    data = scrape_inputs(response.text)
+    data['wpTextbox1'] = content
+
+    response_code = 0
+    while response_code != 200:
+        response = session.post("http://{}/wiki/index.php?title={}&action=submit".format(base_url, edit_path), data)
+        response_code = response.status_code
     return

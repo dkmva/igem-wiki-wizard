@@ -1,7 +1,47 @@
 {% extends 'admin/master.html' %}
 {% block body %}
 {{ super() }}
-<div class="row-fluid">
-    <h1>Not yet implemented...</h1>
+<div class="row">
+    {% if form %}
+    <h1>Theme selection</h1>
+    <p class="lead">
+        Here you can install a theme for your Wiki.
+    </p>
+    <p>
+        <a href="{{ url_for('.index') }}">Return</a> to theme selection.<br>
+        The theme must be uploaded as a zip file.
+    </p>
+        {{ wtf.quick_form(form) }}
+    {% else %}
+    <h1>Theme selection</h1>
+    <p class="lead">
+        Here you can select a theme for your Wiki.
+    </p>
+    <p>or <a href="{{ url_for('.install') }}"">install</a> a new one.</p>
+    <div class="container">
+    {% for theme in themes %}
+        <div class="row">
+            <div class="col-xs-4">
+                <img src="/_themes/{{ theme.identifier }}/{{theme.preview}}" style="width:100%">
+            </div>
+            <div class="col-xs-8">
+                <dl class="dl-horizontal">
+                    <dt>Theme name</dt>
+                    <dd>{{theme.name}}</dd>
+                    <dt>Author</dt>
+                    <dd>{{ theme.author }}</dd>
+                    <dt>Description</dt>
+                    <dd>{{ theme.description }}</dd>
+                    {% if theme.identifier != chosen_theme %}
+                    <dd><br><a href="{{ url_for('.select', theme=theme.identifier) }}" class="btn btn-primary" >select theme</a></dd>
+                    {% else %}
+                    <dd><br><a href="#" class="btn btn-primary" disabled>select theme</a></dd>
+                    {% endif %}
+                </dl>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+    {% endif %}
 </div>
 {% endblock body %}

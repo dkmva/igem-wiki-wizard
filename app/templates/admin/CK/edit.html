@@ -1,28 +1,11 @@
 {% extends 'admin/model/edit.html' %}
 
-{% block body %}
-    <div id="images" style="position: absolute;
-                      top: 70px;
-                      right: 100px;
-                      z-index: 10;">
-
-    </div>
+{% block navlinks %}
     {{ super() }}
+    <button class="btn btn-primary" onclick="TogetherJS(this); return false;">Start TogetherJS</button>
 {% endblock %}
 
 {% block tail %}
     {{ super() }}
-    <script src="{{ url_for('main.ckedit', path='ckeditor.js') }}"></script>
-    <script>
-    CKEDITOR.dtd.$removeEmpty['span'] = false;
-    $('.inline-field .btn').click(function() {
-         $('.ckeditor').each(function () {
-             if(!CKEDITOR.instances[this.id]) {
-                 CKEDITOR.replace(this.id);
-             }
-        });
-    });
-    $( "#images" ).load( "/images" );
-    </script>
+    {% include 'admin/CK/ckscripts.html' %}
 {% endblock %}
-

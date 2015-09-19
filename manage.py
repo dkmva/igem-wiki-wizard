@@ -5,6 +5,7 @@ app = create_app()
 manager = Manager(app)
 manager.add_command("runserver", Server(port=8000))
 
+
 @manager.command
 def create():
     "Creates database tables from sqlalchemy models"

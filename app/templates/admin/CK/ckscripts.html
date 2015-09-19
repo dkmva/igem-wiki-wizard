@@ -1,0 +1,71 @@
+<script src="{{ url_for('static', filename='ckeditor/ckeditor.js') }}"></script>
+<script>
+    $(document).ready( function(){
+
+        $('.inline-remove-field').click(function() {
+            ed = CKEDITOR.instances[$(this).parents(".well").find('textarea').attr('id')];
+            ed.destroy()
+        });
+
+
+
+        var template_replacement = function(l) {
+            return '<select id="' + l.id + '" name="' + l.name + '" class="' + l.className + '">' +
+            '<option value=" "> </option>' +
+            {% for tmpl in template_list %}
+                '<option value="{{ tmpl }}">{{ tmpl }}</option>' +
+            {% endfor %}
+            '</select>';
+        };
+
+        var file_replacement = function(l) {
+            return '<select id="' + l.id + '" name="' + l.name + '" class="' + l.className + '">' +
+            '<option value=" "> </option>' +
+            {% for file in file_list %}
+                '<option value="{{ file }}">{{ file }}</option>' +
+            {% endfor %}
+            '</select>';
+        };
+
+        var make_replacement = function(l, replacement){
+            var val = l.value;
+            $("#" + l.id).replaceWith(replacement(l));
+            $("#" + l.id).val(val);
+            $("#" + l.id).select2();
+        };
+
+        var convertFields = function () {
+
+            $.each($("[id*=template]").not("[id*=togetherjs]"), function (i, l) {
+                if($("#" + l.id).data("select2") == undefined){
+                    make_replacement(l, template_replacement);
+                }
+            });
+            $.each($("[id*=image]"), function (i, l) {
+                if($("#" + l.id).data("select2") == undefined){
+                    make_replacement(l, file_replacement);
+                }
+            });
+        };
+        CKEDITOR.dtd.$removeEmpty['span'] = false;
+        $('.inline-field .btn').click(function() {
+            $('.ckeditor').each(function () {
+                 if(!CKEDITOR.instances[this.id]) {
+                     CKEDITOR.replace(this.id);
+                 }
+            });
+           convertFields();
+        });
+
+
+        convertFields();
+    });
+</script>
+<script>
+  TogetherJSConfig_findRoom = {prefix: "WikiWiz{{ namespace | replace('-', '') }}", max: 25};
+  //TogetherJSConfig_autoStart = true;
+  TogetherJSConfig_suppressJoinConfirmation = true;
+  TogetherJSConfig_getUserName = function () {return '{{ current_user.username }}';};
+  TogetherJSConfig_storagePrefix = "wikiwiz_{{ namespace | replace('-', '') }}";
+</script>
+<script src="{{ url_for('static', filename='togetherjs/togetherjs-min.js') }}"></script>

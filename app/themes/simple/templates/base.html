@@ -1,0 +1,62 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  	 <link rel=stylesheet href="{{ theme_static('css/bootstrap.css') }}?action=raw&ctype=text/css">
+    <link rel=stylesheet href="{{ theme_static('css/font-awesome.css') }}?action=raw&ctype=text/css">
+    <link rel=stylesheet href="{{ theme_static('css/wiki.css') }}?action=raw&ctype=text/css">
+    <link rel=stylesheet href="{{ theme_static('css/timeline.css') }}?action=raw&ctype=text/css">
+    <link rel=stylesheet href="{{ theme_static('css/menufix.css') }}?action=raw&ctype=text/css">
+
+    <script type="text/javascript" src="{{ theme_static('js/jquery.js') }}?action=raw&ctype=text/javascript"></script>
+    <script type="text/javascript" src="{{ theme_static('js/bootstrap.js') }}?action=raw&ctype=text/javascript"></script>
+    <script type="text/javascript" src="{{ theme_static('js/wiki.js') }}?action=raw&ctype=text/javascript"></script>
+
+    <!-- MathJax (LaTeX for the web) -->
+    <script src="http://2015.igem.org/common/MathJax-2.5-latest/MathJax.js?config=TeX-AMS-MML_SVG"></script>
+
+</head>
+<body>
+<div class="container">
+	<div class="row clearfix">
+		<div class="col-md-12 column">
+			<div class="page-header">
+				<h1>Technical University of Denmark
+					<!--small>Team Name</small-->
+				</h1>
+			</div>
+		</div>
+    	<div class="col-md-2">
+        	<div class="sidebar-nav">
+				<nav class="navbar navbar-default" role="navigation">
+					<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+						<ul class="nav navbar-nav">
+							{%- for item in main_menu recursive %}
+									<li class="dropdown{% if item.page.name == page.name %} active{% endif %}">
+										<a href="{{ item.href }}"
+										   {% if item.children %}class="dropdown-toggle"
+										   data-toggle="dropdown"
+										   role="button"
+										   aria-expanded="false"{% endif %}>{{ item }}
+                                           {% if item.children %}<span class="caret"></span>{% endif %}</a>
+								{%- if item.children -%}
+									<ul class="dropdown-menu" role="menu">{{ loop(item.children) }}</ul>
+								{%- endif %}</li>
+							{%- endfor %}
+						</ul>
+					</div>
+				</nav>
+            </div>
+        </div>
+    	<div class="col-md-9">
+            <div class="row clearfix">
+            {% for section in page.sections %}
+                 {% include theme(section.template or 'section.html') %}
+            {% endfor %}
+			</div>
+		</div>
+	</div>
+</div>
+</body>
+</html>

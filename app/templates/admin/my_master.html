@@ -2,13 +2,13 @@
 {% import 'wtf.html' as wtf %}
 
 {% block access_control %}
-<ul class="nav pull-right">
-  {% if config.NAMESPACE %}
+<ul class="nav navbar-nav navbar-right">
+  {% if namespace %}
   <li>
-      <a href="{{ url_for('main.wiki', namespace=config.NAMESPACE) }}">Team main page</a>
+      <a href="{{ url_for('main.wiki', namespace=namespace) }}" class="navbar-link">Team main page</a>
   </li>
   {% endif %}
-  {% if current_user.is_authenticated() %}
+  {% if current_user.is_authenticated %}
   <li class="dropdown">
     <a href="#" class="dropdown-toggle" data-toggle="dropdown">
       <i class="icon-user"></i>

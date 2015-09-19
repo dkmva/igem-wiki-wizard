@@ -1,0 +1,8 @@
+<div class="row col-md-12 column">
+    <h2>
+        {{ section }}
+    </h2>
+    {% block content %}
+    {{ section.html | safe }}
+    {% endblock %}
+</div>
