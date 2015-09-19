@@ -12,7 +12,9 @@ except IOError:
 # line, it's possible required libraries won't be in your searchable path
 #
 
-from manage import app as application
+from app import create_app
+
+application = create_app()
 
 #
 # Below for testing only
