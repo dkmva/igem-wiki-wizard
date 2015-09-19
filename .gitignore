@@ -1,5 +1,4 @@
 *.pyc
 data-dev.sqlite
 app/config.yml
-app/static
 .idea/
