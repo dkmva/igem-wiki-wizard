@@ -6,7 +6,7 @@ from app.admin.views import EntityView, PageView, StaticFiles, Theme, MenuItemVi
 
 
 def create_admin(app):
-    admin = Admin(app, template_mode='bootstrap3', base_template='admin/my_master.html', index_view=IndexView())
+    admin = Admin(app, name='Wiki Wizard', template_mode='bootstrap3', base_template='admin/my_master.html', index_view=IndexView())
 
     admin.add_view(PageView(Page, db.session, name='Pages', category='Content'))
     admin.add_view(SectionView(Section, db.session, name='Sections', category='Content'))
