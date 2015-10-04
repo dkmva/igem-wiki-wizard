@@ -7,12 +7,19 @@
             ed.destroy()
         });
 
-
-
-        var template_replacement = function(l) {
+        var page_replacement = function(l) {
             return '<select id="' + l.id + '" name="' + l.name + '" class="' + l.className + '">' +
-            '<option value=" "> </option>' +
-            {% for tmpl in template_list %}
+            '<option value=""> </option>' +
+            {% for tmpl in page_templates %}
+                '<option value="{{ tmpl }}">{{ tmpl }}</option>' +
+            {% endfor %}
+            '</select>';
+        };
+
+        var section_replacement = function(l) {
+            return '<select id="' + l.id + '" name="' + l.name + '" class="' + l.className + '">' +
+            '<option value=""> </option>' +
+            {% for tmpl in section_templates %}
                 '<option value="{{ tmpl }}">{{ tmpl }}</option>' +
             {% endfor %}
             '</select>';
@@ -20,7 +27,7 @@
 
         var file_replacement = function(l) {
             return '<select id="' + l.id + '" name="' + l.name + '" class="' + l.className + '">' +
-            '<option value=" "> </option>' +
+            '<option value=""> </option>' +
             {% for file in file_list %}
                 '<option value="{{ file }}">{{ file }}</option>' +
             {% endfor %}
@@ -31,14 +38,21 @@
             var val = l.value;
             $("#" + l.id).replaceWith(replacement(l));
             $("#" + l.id).val(val);
-            $("#" + l.id).select2();
+            $("#" + l.id).select2({
+                allowClear: true,
+                placeholder: 'Select...',
+            });
         };
 
         var convertFields = function () {
 
             $.each($("[id*=template]").not("[id*=togetherjs]"), function (i, l) {
                 if($("#" + l.id).data("select2") == undefined){
-                    make_replacement(l, template_replacement);
+                    if (window.location.pathname.indexOf("section") >= 0 || this.id.indexOf("section") >= 0){
+                        make_replacement(l, section_replacement);
+                    } else {
+                        make_replacement(l, page_replacement);
+                    }
                 }
             });
             $.each($("[id*=image]"), function (i, l) {
