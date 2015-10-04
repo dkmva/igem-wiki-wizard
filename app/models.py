@@ -2,6 +2,7 @@ from itertools import groupby
 from operator import itemgetter
 import os
 import re
+
 from flask import url_for
 from flask.ext.login import UserMixin, LoginManager
 from flask.ext.sqlalchemy import SQLAlchemy
@@ -60,14 +61,15 @@ class Page(db.Model):
         ctx = {
             'page': self,
             'entities': Entity.query.order_by('position').all(),
-            'main_menu': MenuItem.query.filter_by(parent=None).all() or Page.query.order_by('position').all()
+            'main_menu': MenuItem.query.filter_by(parent=None).all() or Page.query.order_by('position').all(),
+            'references': []
         }
         theme = Setting.query.filter_by(name=u'theme').first().value
-        rendered = render_theme_template(theme, self.template, **ctx)
 
-        ctx['references'] = []
-        re.sub(cite_pattern, convert_references(ctx['references']), rendered)
-        rendered = render_theme_template(theme, self.template, **ctx)
+        # Make reference list
+        [re.sub(cite_pattern, convert_references(ctx['references']), sec.html) for sec in self.sections]
+
+        rendered = render_theme_template(theme, 'pages/'+self.template, **ctx)
         rendered = re.sub(cite_pattern, convert_references(ctx['references']), rendered)
         return rendered
 
@@ -182,7 +184,7 @@ def convert_references(references):
         # Build list of references from ids.
         refs = []
         for id in ids:
-            r = Reference.query.filter_by(ref_id=id).first().value
+            r = Reference.query.filter_by(ref_id=id).first()
             if r:
                 refs.append(r.reference)
             else:
