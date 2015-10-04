@@ -19,23 +19,13 @@ def index():
 def wiki(namespace, path=None):
     if namespace != Setting.query.filter_by(name=u'namespace').first().value:
         raise NotFound()
-    page = Page.query.filter_by(url=path or '').first_or_404()
+    page = Page.query.filter_by(url=path).first_or_404()
 
     return page.render()
 
 
 def make_reference_link(reference):
     return '<a href="http://dx.doi.org/{}" target="_blank">{}</a>'.format(*reference.groups()[::-1])
-
-
-@main.route('/jslibs/<path:path>')
-def jslibs(path):
-    full_path = os.path.join(current_app.root_path, 'jslibs', path)
-
-    basename = os.path.basename(full_path)
-    dirname = os.path.dirname(full_path)
-
-    return send_from_directory(dirname, basename)
 
 
 @main.route('/getref', methods=['POST'])

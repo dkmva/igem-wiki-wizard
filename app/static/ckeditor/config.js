@@ -10,7 +10,7 @@ CKEDITOR.editorConfig = function( config ) {
 
 
 	config.mathJaxLib = '//cdn.mathjax.org/mathjax/2.2-latest/MathJax.js?config=TeX-AMS_HTML';
-	config.contentsCss = '/jslibs/ckeditor/fonts/bootstrap-font-awesome.min.css';
+	config.contentsCss = '/static/ckeditor/fonts/bootstrap-font-awesome.min.css';
 	config.allowedContent = true;
 
 };
