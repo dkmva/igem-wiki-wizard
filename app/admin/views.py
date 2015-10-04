@@ -14,7 +14,7 @@ from wtforms import TextAreaField, StringField, PasswordField
 from wtforms.widgets import TextArea
 
 from app.admin.forms import SettingsForm, RegistrationForm, LoginForm, ThemeForm
-from app.models import Setting, Page, User, db, Section
+from app.models import Setting, Page, User, db, Section, Entity, UploadedFile
 from app.upload import upload_binary_file, upload_text_file, wiki_login, wiki_logout, upload_page
 
 
@@ -50,7 +50,7 @@ class FileAdmin(FileAdmin):
 class CKTextAreaWidget(TextArea):
     def __call__(self, field, **kwargs):
         if kwargs.get('class'):
-            kwargs['class'] += " ckeditor"
+            kwargs['class'] += ' ckeditor'
         else:
             kwargs.setdefault('class', 'ckeditor')
         return super(CKTextAreaWidget, self).__call__(field, **kwargs)
@@ -92,6 +92,21 @@ class StaticFiles(FileAdmin):
     def is_accessible_path(self, path):
         if not path or os.path.isfile(os.path.join(self.base_path, path)):
             return True
+
+    def on_rename(self, full_path, dir_base, filename):
+        oldname = os.path.basename(full_path)
+
+        to_update = []
+        to_update += Page.query.filter_by(image=oldname).all()
+        to_update += Section.query.filter_by(image=oldname).all()
+        to_update += Entity.query.filter_by(image=oldname).all()
+
+        for item in to_update:
+            item.image = unicode(filename)
+
+        uf = UploadedFile.query.filter_by(name=oldname).first()
+        if uf:
+            uf.name = filename
 
 
 class Theme(FileAdmin):
@@ -212,6 +227,7 @@ class SectionView(CKModelView):
 
 
 class TimeLineView(CKModelView):
+    form_overrides = dict(html=CKTextAreaField)
     column_default_sort = 'date'
 
 
@@ -343,7 +359,7 @@ class SelectThemeView(BaseView):
     @expose('/select/<theme>')
     def select(self, theme):
         setting = Setting.query.filter_by(name=u'theme').first()
-        setting.value = theme
+        setting.value = unicode(theme)
         return redirect(url_for('.index'))
 
     @expose('/install/', methods=['GET', 'POST'])
@@ -357,7 +373,7 @@ class SelectThemeView(BaseView):
             zname = os.path.join(theme_base, filename)
             form.theme.data.save(zname)
 
-            with zipfile.ZipFile(zname, "r") as z:
+            with zipfile.ZipFile(zname, 'r') as z:
                 z.extractall(theme_base)
 
             os.remove(zname)
