@@ -238,10 +238,11 @@ class TimeLineView(CKModelView):
 class PageView(CKModelView):
     form_overrides = dict(html=CKTextAreaField)
     inline_models = [(Section, dict(sort_column='position', form_overrides=dict(html=CKTextAreaField)))]
+    column_default_sort = ('position', False)
 
 
 class MenuItemView(ModelView):
-    pass
+    column_default_sort = ('position', False)
 
 
 class UserView(ModelView):

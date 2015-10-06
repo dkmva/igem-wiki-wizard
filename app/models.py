@@ -62,7 +62,7 @@ class Page(db.Model):
             'page': self,
             'entities': Entity.query.order_by('position').all(),
             'timeline': Timeline.query.order_by('-date').all(),
-            'main_menu': MenuItem.query.filter_by(parent=None).all() or Page.query.order_by('position').all(),
+            'main_menu': MenuItem.query.filter_by(parent=None).order_by('position').all() or Page.query.order_by('position').all(),
             'references': []
         }
         theme = Setting.query.filter_by(name=u'theme').first().value
