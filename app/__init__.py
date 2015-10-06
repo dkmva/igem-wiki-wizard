@@ -1,22 +1,17 @@
 import os
 import shutil
+
 from flask import Flask
 from flask.ext.themes2 import Themes
 from sqlalchemy.exc import OperationalError, ProgrammingError
-from wtforms import HiddenField
 import yaml
-from app.install import make_config, install_data
 
+from app.install import make_config, install_data
 from app.models import db, login_manager, Setting, Page, User
+from app.utils import css_sanitizer, is_hidden_field_filter, WikiInclude
+
 
 themes = Themes()
-
-
-# From Flask-Bootstrap
-def is_hidden_field_filter(field):
-    return isinstance(field, HiddenField)
-
-
 # Put static folder inside data folder on OpenShift, otherwise use standard.
 static_folder = os.path.join(os.environ.get('OPENSHIFT_DATA_DIR', ''), 'static')
 
@@ -55,6 +50,8 @@ def create_app():
             install_data()
     # From Flask-Bootstrap
     app.jinja_env.globals['bootstrap_is_hidden_field'] = is_hidden_field_filter
+    app.jinja_env.filters['css_sanitized'] = css_sanitizer
+    app.jinja_env.add_extension(WikiInclude)
 
     # URL Rules / Blueprints
     from main import main as main_blueprint
@@ -62,6 +59,6 @@ def create_app():
 
     # Admin view
     from admin import create_admin
-    admin = create_admin(app)
+    create_admin(app)
 
     return app

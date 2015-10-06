@@ -15,7 +15,8 @@ from wtforms.widgets import TextArea
 
 from app.admin.forms import SettingsForm, RegistrationForm, LoginForm, ThemeForm
 from app.models import Setting, Page, User, db, Section, Entity, UploadedFile
-from app.upload import upload_binary_file, upload_text_file, wiki_login, wiki_logout, upload_page
+from app.upload import upload_binary_file, upload_text_file, wiki_login, wiki_logout, upload_page, upload_template
+from app.utils import get_theme_folder
 
 
 # View Classes
@@ -108,7 +109,7 @@ class StaticFiles(FileAdmin):
 
         uf = UploadedFile.query.filter_by(name=oldname).first()
         if uf:
-            uf.name = filename
+            uf.name = unicode(filename)
 
 
 class Theme(FileAdmin):
@@ -275,7 +276,9 @@ class UploadView(BaseView):
     @expose('/', methods=['GET', 'POST'])
     def index(self):
         theme = Setting.query.filter_by(name=u'theme').first().value
-        theme_static = os.path.join(current_app.config['THEME_PATHS'][0], theme, 'static')
+        theme_folder = os.path.join(current_app.config['THEME_PATHS'][0], theme)
+        theme_static = os.path.join(theme_folder, 'static')
+        theme_includes = os.listdir(os.path.join(theme_folder, 'templates', 'includes'))
         theme_static_files = []
         for root, directories, filenames in os.walk(theme_static):
             for name in filenames:
@@ -284,9 +287,10 @@ class UploadView(BaseView):
                 theme_static_files.append(os.path.join(root[len(theme_static)+1:], name))
 
         ctx = {
-            'pages': Page.query.all(),
+            'pages': Page.query,
             'files': [f for f in os.listdir(current_app.static_folder) if os.path.isfile(os.path.join(current_app.static_folder, f))],
             'theme': theme_static_files,
+            'includes': theme_includes,
         }
 
         return self.render('admin/upload.html', **ctx)
@@ -324,6 +328,12 @@ class UploadView(BaseView):
             upload_text_file(theme_static, file)
         else:
             upload_binary_file(theme_static, file)
+        return 'Theme file uploaded'
+
+    @expose('/includeupload', methods=['POST'])
+    def themeupload(self):
+        file = request.get_json()['file']
+        upload_template(file)
         return 'Theme file uploaded'
 
 
@@ -443,9 +453,3 @@ class IndexView(AdminIndexView):
     def logout_view(self):
         logout_user()
         return redirect(url_for('.index'))
-
-
-def get_theme_folder(foldername):
-    theme = Setting.query.filter_by(name=u'theme').first().value
-    theme_folder = os.path.join(current_app.config['THEME_PATHS'][0], theme, foldername)
-    return theme_folder

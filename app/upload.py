@@ -4,6 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from app.models import Setting, UploadedFile, Page, db
+from app.utils import get_theme_folder
 
 session = requests.Session()
 
@@ -45,8 +46,20 @@ def wiki_logout():
     return
 
 
-def upload_theme():
-    pass
+def upload_template(template):
+    root = get_theme_folder('templates/includes')
+    abs_path = os.path.join(root, template)
+    basename = os.path.basename(abs_path)
+
+    with open(abs_path) as f:
+        content = f.read()
+
+    content = re.sub(file_pattern, convert_external, content)
+
+    path = os.path.split(basename)[0]
+
+    return upload_wiki_text(content, path, prefix='Template:')
+
 
 
 def upload_page(name):
@@ -55,25 +68,10 @@ def upload_page(name):
 
     page = Page.query.filter_by(name=name)
 
-    edit_path = 'Team:{}'.format(namespace)
-    if page.url:
-        edit_path += '/{}'.format(page.url)
+    content = page.render_external()
+    path = page.url
 
-    response_code = 0
-    while response_code != 200:
-        response = session.get('http://{}/wiki/index.php?title={}&action=edit'.format(base_url, edit_path))
-        response_code = response.status_code
-
-    data = scrape_inputs(response.text)
-
-    html = page.render_external()
-    data['wpTextbox1'] = html
-
-    response_code = 0
-    while response_code != 200:
-        response = session.post('http://{}/wiki/index.php?title={}&action=submit'.format(base_url, edit_path), data)
-        response_code = response.status_code
-    return
+    return upload_wiki_text(content, path)
 
 
 def upload_binary_file(root, path):
@@ -125,16 +123,23 @@ def upload_text_file(root, path):
     abs_path = os.path.join(root, path)
     basename = os.path.basename(abs_path)
 
-    base_url = Setting.query.filter_.by(name='base_url').first().value
-    namespace = Setting.query.filter_by(name='namespace').first().value
-
-    edit_path = 'Team:{}'.format(namespace)
-    edit_path += '/{}'.format(basename.replace('.', ''))
-
     with open(abs_path) as f:
         content = f.read()
 
     content = re.sub(file_pattern, convert_external, content)
+
+    path = basename.replace('.', '')
+
+    return upload_wiki_text(content, path)
+
+
+def upload_wiki_text(content, path, prefix=''):
+    base_url = Setting.query.filter_.by(name='base_url').first().value
+    namespace = Setting.query.filter_by(name='namespace').first().value
+
+    edit_path = '{}Team:{}'.format(prefix, namespace)
+    if path:
+        edit_path += '/{}'.format(path)
 
     response_code = 0
     while response_code != 200:

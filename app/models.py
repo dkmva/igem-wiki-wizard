@@ -61,6 +61,7 @@ class Page(db.Model):
         ctx = {
             'page': self,
             'entities': Entity.query.order_by('position').all(),
+            'timeline': Timeline.query.order_by('-date').all(),
             'main_menu': MenuItem.query.filter_by(parent=None).all() or Page.query.order_by('position').all(),
             'references': []
         }
