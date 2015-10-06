@@ -74,9 +74,10 @@ class CKModelView(ModelView):
     @expose('/new/', methods=('GET', 'POST'))
     def create_view(self):
         theme = Setting.query.filter_by(name=u'theme').first().value
-        theme_templates = os.path.join(current_app.config['THEME_PATHS'][0], theme, 'templates', self.__class__.__name__[:-4].lower()+'s')
-        if os.path.isdir(theme_templates):
-            self._template_args['template_list'] = [f for f in os.listdir(theme_templates) if not f[:1] == '_']
+        page_templates = os.path.join(current_app.config['THEME_PATHS'][0], theme, 'templates', 'pages')
+        section_templates = os.path.join(current_app.config['THEME_PATHS'][0], theme, 'templates', 'sections')
+        self._template_args['page_templates'] = [f for f in os.listdir(page_templates) if not f[:1] == '_']
+        self._template_args['section_templates'] = [f for f in os.listdir(section_templates) if not f[:1] == '_']
         self._template_args['file_list'] = [f for f in os.listdir(current_app.static_folder) if os.path.splitext(f)[-1] in ['.png', '.gif', '.jpg', '.jpeg']]
         return super(CKModelView, self).create_view()
 
