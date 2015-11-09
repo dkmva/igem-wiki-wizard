@@ -138,7 +138,7 @@
 
                     return uploadFactory.uploadTheme($scope.uploadTheme()).then(function() {
                         return uploadFactory.uploadFiles($scope.uploadFiles()).then(function() {
-                            return uploadFactory.uploadIncludes($scope.uploadPages()).then(function() {
+                            return uploadFactory.uploadIncludes($scope.uploadIncludes()).then(function() {
                                 return uploadFactory.uploadPages($scope.uploadPages()).then(function () {
                                     return uploadFactory.doLogout().then(function () {
                                         $scope.variables.thingsDone += 1;

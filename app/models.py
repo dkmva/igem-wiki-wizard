@@ -7,6 +7,7 @@ from flask import url_for
 from flask.ext.login import UserMixin, LoginManager
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.themes2 import render_theme_template
+from sqlalchemy import desc
 from sqlalchemy.orm import backref
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -61,7 +62,7 @@ class Page(db.Model):
         ctx = {
             'page': self,
             'entities': Entity.query.order_by('position').all(),
-            'timeline': Timeline.query.order_by('-date').all(),
+            'timeline': Timeline.query.order_by(desc('date')).all(),
             'main_menu': MenuItem.query.filter_by(parent=None).order_by('position').all() or Page.query.order_by('position').all(),
             'references': []
         }

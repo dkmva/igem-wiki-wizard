@@ -1,9 +1,11 @@
 import os
 import re
+from flask import render_template_string
 import requests
 from bs4 import BeautifulSoup
+from app import models
 
-from app.models import Setting, UploadedFile, Page, db
+from app.models import Setting, UploadedFile, Page, db, Entity, MenuItem
 from app.utils import get_theme_folder
 
 session = requests.Session()
@@ -45,6 +47,8 @@ def wiki_logout():
 
     return
 
+theme_pattern = re.compile(r'(/_theme.*?|/static.*?)(?=[")])')
+
 
 def upload_template(template):
     root = get_theme_folder('templates/includes')
@@ -54,18 +58,20 @@ def upload_template(template):
     with open(abs_path) as f:
         content = f.read()
 
-    content = re.sub(file_pattern, convert_external, content)
+    ctx = {
+            'entities': Entity.query.order_by('position').all(),
+            'main_menu': MenuItem.query.filter_by(parent=None).order_by('position').all() or Page.query.order_by('position').all(),
+            '_theme': Setting.query.filter_by(name=u'theme').first().value
+        }
+    content = render_template_string(content, **ctx)
+    content = re.sub(theme_pattern, models.convert_external, content)
 
-    path = os.path.split(basename)[0]
+    path = os.path.splitext(basename)[0]
 
     return upload_wiki_text(content, path, prefix='Template:')
 
 
-
 def upload_page(name):
-    base_url = Setting.query.filter_.by(name=u'base_url').first().value
-    namespace = Setting.query.filter_by(name=u'namespace').first().value
-
     page = Page.query.filter_by(name=name)
 
     content = page.render_external()
@@ -78,7 +84,7 @@ def upload_binary_file(root, path):
     abs_path = os.path.join(root, path)
     basename = os.path.basename(abs_path)
 
-    base_url = Setting.query.filter_.by(name='base_url').first().value
+    base_url = Setting.query.filter_by(name='base_url').first().value
     namespace = Setting.query.filter_by(name='namespace').first().value
 
     response_code = 0
@@ -134,8 +140,8 @@ def upload_text_file(root, path):
 
 
 def upload_wiki_text(content, path, prefix=''):
-    base_url = Setting.query.filter_.by(name='base_url').first().value
-    namespace = Setting.query.filter_by(name='namespace').first().value
+    base_url = Setting.query.filter_by(name=u'base_url').first().value
+    namespace = Setting.query.filter_by(name=u'namespace').first().value
 
     edit_path = '{}Team:{}'.format(prefix, namespace)
     if path:
