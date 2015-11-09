@@ -72,7 +72,7 @@ def upload_template(template):
 
 
 def upload_page(name):
-    page = Page.query.filter_by(name=name)
+    page = Page.query.filter_by(name=name).first()
 
     content = page.render_external()
     path = page.url
