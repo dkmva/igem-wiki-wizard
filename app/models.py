@@ -213,6 +213,6 @@ def convert_external(match_obj):
     else:
         f = UploadedFile.query.filter_by(name=os.path.basename(m)).first()
         if f:
-            return 'http://{}{}'.format(Setting.query.filter_by(name=u'base_url').first().value, f)
+            return 'http://{}{}'.format(Setting.query.filter_by(name=u'base_url').first().value, f.external_path)
         else:
             return m

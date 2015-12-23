@@ -333,7 +333,7 @@ class UploadView(BaseView):
         return 'Theme file uploaded'
 
     @expose('/includeupload', methods=['POST'])
-    def themeupload(self):
+    def includeupload(self):
         file = request.get_json()['file']
         upload_template(file)
         return 'Theme file uploaded'
