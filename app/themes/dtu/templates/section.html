@@ -1,0 +1,17 @@
+{% if section.image %}
+<div class="img" style="background-image: url({{ url_for('static', filename=section.image) }})"></div>
+{% endif %}
+<div id="{{ section.name | replace(' ', '-') | replace('(', '') | replace(')', '') | replace(',', '') | replace('!', '')  | replace('?', '') }}">
+  <div class="container">
+  {% block container %}
+    <div class="row col-md-12">
+      <h1>
+        {{ section }}
+      </h1>
+        {% block content %}
+        {{ section.html | safe }}
+        {% endblock %}
+    </div>
+    {% endblock %}
+  </div>
+</div>

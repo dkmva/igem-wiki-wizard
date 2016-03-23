@@ -1,0 +1,35 @@
+{% extends theme('pages/_base_page.html') %}
+{% block hero_text %}
+<h3><br></h3>
+<h1>{{ page.name }}</h1>
+{% endblock %}
+{% block sections %}
+<div class="container">
+  <h1 id="Project">Project</h1>
+  <div class="row">
+    {% for i in range(4) %}
+            <div class="col-md-4">
+              <div class="col-md-12 well"  style="height: 350px">
+                <h1>
+                  {{ section }}
+                </h1>
+                  {{ section.html | safe }}
+              </div>
+          </div>
+        {% endfor %}
+        <div class="col-md-4">
+              <img src="{{ theme_static('images/cycle.png') }}">
+          </div>
+        {% for i in range(4, 8) %}
+            <div class="col-md-4">
+              <div class="col-md-12 well"  style="height: 350px">
+                <h1>
+                  {{ section }}
+                </h1>
+                  {{ section.html | safe }}
+              </div>
+          </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

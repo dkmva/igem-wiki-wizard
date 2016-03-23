@@ -1,0 +1,183 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+      <link rel=stylesheet href="{{ theme_static('css/loadphp.css') }}?action=raw&ctype=text/css">
+      <link rel=stylesheet href="{{ theme_static('css/bootstrap.css') }}?action=raw&ctype=text/css">
+      <link rel=stylesheet href="{{ theme_static('css/font-awesome.css') }}?action=raw&ctype=text/css">
+      <link rel=stylesheet href="{{ theme_static('css/wiki.css') }}?action=raw&ctype=text/css">
+      <link rel=stylesheet href="{{ theme_static('css/timeline.css') }}?action=raw&ctype=text/css">
+      <link rel=stylesheet href="{{ theme_static('css/menufix.css') }}?action=raw&ctype=text/css">
+
+    <script type="text/javascript" src="{{ theme_static('js/jquery.js') }}?action=raw&ctype=text/javascript"></script>
+    <script type="text/javascript" src="{{ theme_static('js/bootstrap.js') }}?action=raw&ctype=text/javascript"></script>
+    <script type="text/javascript" src="{{ theme_static('js/jquery.easing.js') }}?action=raw&ctype=text/javascript"></script>
+    <script type="text/javascript" src="{{ theme_static('js/wiki.js') }}?action=raw&ctype=text/javascript"></script>
+
+    <!-- MathJax (LaTeX for the web) -->
+    <script src="http://2015.igem.org/common/MathJax-2.5-latest/MathJax.js?config=TeX-AMS-MML_SVG"></script>
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    
+  </head>
+  <body data-spy="scroll" data-target="#scrollspy" data-offset="90">
+    <div id="fb-root"></div>
+    <script>(function(d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) return;
+      js = d.createElement(s); js.id = id;
+      js.src = "//connect.facebook.net/da_DK/all.js#xfbml=1&version=v2.4";
+      fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));</script>
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <!-- Brand and toggle get grouped for better mobile display -->
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#nav-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <i class="fa fa-bars"></i>
+            <!--span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span-->
+          </button>
+          <a class="navbar-brand navimg" href="#"><img src="{{ theme_static('images/dtulogo.png') }}"></a>
+        </div>
+  
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="nav-collapse">
+          <ul class="nav navbar-nav navbar-right hidden-lg hidden-xs">
+            <li>
+              <a href="http://igem.org" target="_blank" class="navimg">
+                <img src="{{ theme_static('images/igemlogo.png') }}">
+              </a>
+            </li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right hidden-xs">
+            <li>
+              <a href="http://facebook.com/dtubiobuilders" data-toggle="tooltip" data-placement="bottom" title="Follow us on Facebook">
+                <i class="fa fa-facebook"></i>
+              </a>
+            </li>
+            <li>
+              <a href="https://twitter.com/IGEM_DTU" data-toggle="tooltip" data-placement="bottom" title="Follow us on Twitter">
+                <i class="fa fa-twitter"></i>
+              </a>
+            </li>
+          </ul>
+          <ul class="nav nav-justified">
+            {% for item in main_menu %}
+            <li {% if item.page.name == page.name %} class="active" {% endif %}>
+              <a href="{{ item.href }}">{{ item }}</a>
+            </li>
+            {% endfor %}
+          </ul>
+          <ul class="nav navbar-nav navbar-right visible-xs">
+            <li>
+              <a href="http://igem.org" target="_blank" class="navimg">
+                <img src="{{ theme_static('images/igemlogo.png') }}">
+              </a>
+            </li>
+            <li><a href="http://facebook.com/dtubiobuilders"><i class="fa fa-facebook-square"></i> Follow us on Facebook</a></li>
+            <li><a href="https://twitter.com/IGEM_DTU"><i class="fa fa-twitter-square"></i> Follow us on Twitter</a></li>
+          </ul>
+        </div><!-- /.navbar-collapse -->
+      </div>
+    </nav>
+    <nav class="navbar navbar-default extrabar hidden-xs hidden" data-spy="affix">
+      <div class="container" id="scrollspy">
+        <ul class="nav nav-justified">
+          {% for section in page.sections %}<li><a class="page-scroll" href="#{{ section.name| replace(' ', '-') | replace('(', '') | replace(')', '') | replace(',', '') | replace('!', '') | replace('?', '')  }}">{{ section }}</a></li>{% endfor %}
+        </ul>
+      </div>
+    </nav>
+    <div class="jumbotron hero" style="background-image: url({{ theme_static('images/hero.jpg') }})">
+      <div class="igem-logo visible-lg">
+        <a href="http://igem.org" target="_blank">
+          <img src="{{ theme_static('images/igemlogo.png') }}">
+        </a>
+      </div>
+      <div class="container">
+        <div class="row hero-text">
+          <div class="col-md-12">
+            {% if page.name == 'Home' %}
+            <h3>Technical University of Denmark</h3>
+            <h1>The Synthesizer</h1>
+            {% else %}
+            <h3><br></h3>
+            <h1>{{ page.name }}</h1>
+            {% endif %}
+            <hr/>
+            <ul class="list-inline hidden-xs hidden-sm">
+              {% for section in page.sections %}
+              <li>
+                <a id="{{ section.name | replace(' ', '-') | replace('(', '') | replace(')', '') | replace(',', '') | replace('!', '')  }}-submenu" class="btn btn-default btn-transparent btn-lg page-scroll" href="#{{ section.name | replace(' ', '-') | replace('(', '') | replace(')', '') | replace(',', '') | replace('!', '') | replace('?', '')  }}">{{ section }}</a>
+              </li>
+              {% endfor %}
+            </ul>
+            <ul class="list-inline visible-xs visible-sm">
+              {% for section in page.sections %}
+              <li>
+                <a id="{{ section.name | replace(' ', '-') | replace('(', '') | replace(')', '') | replace(',', '') | replace('!', '')  }}-submenu" class="page-scroll" href="#{{ section.name | replace(' ', '-') | replace('(', '') | replace(')', '') | replace(',', '') | replace('!', '') | replace('?', '')  }}">{{ section }}</a>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            Scroll down for more<br>
+            <a href="#{% if sections %}{{ sections[0].name | replace(' ', '-') | replace('(', '') | replace(')', '') | replace(',', '') | replace('!', '') | replace('?', '')  }}{% endif %}" class="btn btn-circle btn-transparent page-scroll">
+              <i class="fa fa-angle-double-down"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% for section in page.sections %}
+         {% include theme(section.template or 'section.html') %}
+    {% endfor %}
+    <footer class="container">
+      <div class="row">
+        <div class="col-md-2 col-md-offset-2">
+          <a href="http://www.dtu.dk" target="_blank">
+            <img src="{{ theme_static('images/dtulogo.png') }}" height="130px">
+          </a>
+        </div>
+        <div class="col-md-4">
+          <address>
+            <strong>Technical University of Denmark</strong><br>
+            Department of Systems Biology <br>
+            Søltofts Plads 221 <br>
+            2800 Kgs. Lyngby<br>
+            Denmark<br>
+            <abbr title="Phone">P:</abbr> +45 45 25 25 25<br>
+            <abbr title="Mail">M:</abbr> <a href="mailto:dtu-igem-2015@googlegroups.com">dtu-igem-2015@googlegroups.com</a>
+          </address>
+        </div>
+        <div class="col-md-2">
+          <a href="http://igem.org" style="float:left" target="_blank">
+              <img src="{{ theme_static('images/igemlogo.png') }}" height="90px">
+          </a>
+        </div>
+      </div>
+    </footer>
+    <div class="sponsors">
+      <div class="container">
+        <div class="row">
+          {% for sponsor in entities if sponsor.role.lower() == 'sponsor' %}
+          <div class="sponsorlogo">
+            {% if sponsor.link%}<a href="{{ sponsor.link}}" target="_blank">{% endif %}
+              <img src="{# url_for('static', filename=sponsor.image.path) #}">
+            {% if sponsor.link%}</a>{% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

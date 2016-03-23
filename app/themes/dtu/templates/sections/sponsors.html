@@ -1,0 +1,14 @@
+{% extends theme('sections/section.html') %}
+{% block container %}
+{{ super() }}
+{% for sponsor in entities if sponsor.role.lower() == 'sponsor' %}
+<div class="row sponsor-row">
+  <div class="col-md-6">
+    <img src="{% if sponsor.image %}{{ url_for('static', filename=sponsor.image.path) }}{% else%}http://placehold.it/150x400{% endif %}" class="sponsor-image">
+  </div>
+  <div class="col-md-6">
+      {{ sponsor.description | safe }}
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

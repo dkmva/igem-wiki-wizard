@@ -1,0 +1,31 @@
+{% extends theme('sections/section.html') %}
+{% macro person_sec(person, image_first=True) %}
+<div class="col-md-6">
+  <div class="row">
+    <div class="col-sm-6{% if image_first %} col-md-push-6{% endif %}">
+      <img src="{% if person.image %}{{ url_for('static', filename=person.image) }}{% endif %}" class="img-rounded person-image">
+    </div>
+    <div class="col-sm-6{% if image_first %} col-md-pull-6{% endif %}">
+      <h3>{{ person.name }}</h3>
+      {{ person.description | safe }}
+      {% if person.link %}<a href="{{ person.link }}"><i class="fa fa-linkedin-square"></i>Linkedin Profile</a>{% endif %}
+    </div>
+  </div>
+</div>
+{% endmacro %}
+{% block container %}
+{{ super() }}
+    {% for person in entities if person.role.lower() == 'member' %}
+        {% if loop.index0 % 2 == 0 %}
+        <div class="row">
+        {% endif %}
+        {% if loop.index % 4 <= 1 %}
+            {{ person_sec(person, False) }}
+        {% else %}
+            {{ person_sec(person, True) }}
+        {% endif%}
+        {% if loop.index0 % 2 == 1 or loop.last %}
+        </div>
+        {% endif%}
+    {% endfor %}
+{% endblock %}

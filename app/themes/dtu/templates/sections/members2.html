@@ -1,0 +1,57 @@
+{% extends theme('sections/section.html') %}
+{% macro person_sec(person) %}
+<div class="modal fade" id="{{person | replace(' ', '-')}}Modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">{{person}}</h4>
+      </div>
+      <div class="modal-body">
+        <div class="col-sm-6">
+          <img src="{% if person.image %}{{ url_for('static', filename=person.image) }}{% else%}http://placehold.it/150x250{% endif %}" class="img-rounded person-image">
+        </div>
+        <div class="col-sm-6">
+          {{ person.description | safe }}
+          {% if person.link %}<a href="{{ person.link }}"><i class="fa fa-linkedin-square"></i>Linkedin Profile</a>{% endif %}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endmacro %}
+{% block container %}
+<div class="row col-md-12">
+  <h1>
+      {{ section }}
+  </h1>
+  <div class="container">
+    <div class="row">
+      <div class="col-xs-12">
+        {{ section.html | safe }}
+        <div style="position:relative;">
+        <p><img alt="" class="img-rounded" src="/files/group_picture.jpg" style="width: 100%;" /></p>
+          {% for person in entities if person.role.lower() == 'member' %}
+          <a href="#" data-toggle="modal" data-target="#{{person | replace(' ', '-')}}Modal">
+            <div class="{{ person.name.split()[0].lower() }}-tag">
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% for person in entities if person.role.lower() == 'member' %}
+    {% if loop.index0 % 4 == 0 %}
+    <div class="row">
+    {% endif %}
+    {{ person_sec(person) }}
+    {% if loop.index0 % 4 == 3 %}
+    </div>
+    {% endif %}
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

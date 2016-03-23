@@ -1,0 +1,12 @@
+{
+    "identifier":   "dtu",
+    "application":  "WikiWizard",
+    "name":         "WikiWizard DTU2015 theme",
+    "description":  "DTU2015 theme for WikiWizard.",
+    "author":       "Mads Valdemar Anderson",
+    "website":      "",
+    "license":      "WTF",
+    "preview":      "preview.png",
+    "doctype":      "html5",
+    "version":      "1.0.0"
+}

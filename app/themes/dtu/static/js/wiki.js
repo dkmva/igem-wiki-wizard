@@ -1,0 +1,30 @@
+if (window.location.hostname == '2015.igem.org'){
+  $('style')[0].disabled=true;
+  $('#bodyContent').find('p').first().css('display', 'none');
+}
+      
+$(document).ready(function() {
+  // jQuery to collapse the navbar on scroll
+  $(window).scroll(function () {
+    if ($(window).scrollTop() > $(".hero").height() + 30) {
+        $(".navbar-fixed-top").addClass("top-nav-collapse");
+        $(".extrabar").removeClass("hidden");
+      } else {
+        $(".navbar-fixed-top").removeClass("top-nav-collapse");
+        $(".extrabar").addClass("hidden");
+      }
+  });
+  // jQuery for page scrolling feature - requires jQuery Easing plugin
+  $(function () {
+    $('a.page-scroll').bind('click', function (event) {
+      var $anchor = $(this);
+      $('html, body').stop().animate({
+        scrollTop: $($anchor.attr('href')).offset().top - 70
+      }, 1500, 'easeInOutExpo');
+      event.preventDefault();
+    });
+  });
+  $(function () {
+    $('[data-toggle="tooltip"]').tooltip();
+  });
+});

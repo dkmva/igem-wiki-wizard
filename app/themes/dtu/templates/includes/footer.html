@@ -1,0 +1,40 @@
+<footer class="container">
+      <div class="row">
+        <div class="col-md-2 col-md-offset-2">
+          <a href="http://www.dtu.dk" target="_blank">
+            <img src="{{ theme_static('images/dtulogo.png') }}" height="130px">
+          </a>
+        </div>
+        <div class="col-md-4">
+          <address>
+            <strong>Technical University of Denmark</strong><br>
+            Department of Systems Biology <br>
+            Søltofts Plads 221 <br>
+            2800 Kgs. Lyngby<br>
+            Denmark<br>
+            <abbr title="Phone">P:</abbr> +45 45 25 25 25<br>
+            <abbr title="Mail">M:</abbr> <a href="mailto:dtu-igem-2015@googlegroups.com">dtu-igem-2015@googlegroups.com</a>
+          </address>
+        </div>
+        <div class="col-md-2">
+          <a href="http://igem.org" style="float:left" target="_blank">
+              <img src="{{ theme_static('images/igemlogo.png') }}" height="90px">
+          </a>
+        </div>
+      </div>
+    </footer>
+    <div class="sponsors">
+      <div class="container">
+        <div class="row">
+          {% for sponsor in entities if sponsor.role.lower() == 'sponsor' %}
+          <div class="sponsorlogo">
+            {% if sponsor.link%}<a href="{{ sponsor.link}}" target="_blank">{% endif %}
+              {% if sponsor.image %}<img src="{{ url_for('static', filename=sponsor.image) }}">{% endif %}
+            {% if sponsor.link%}</a>{% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
