@@ -6,7 +6,7 @@ import yaml
 from app.models import db, MenuItem, Page, Section, Entity, Setting
 
 pages = [
-    (u'Home', u''),
+    (u'Home', None),
     (u'Team', u'Team'),
     (u'Description', u'Description'),
     (u'Experiments & Protocols', u'Experiments'),
