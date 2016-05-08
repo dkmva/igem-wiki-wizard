@@ -74,7 +74,7 @@ def install_data():
         db.session.add(setting)
 
     for i, (name, url) in enumerate(pages, 1):
-        page = Page(name=name, url=url, template=u'base.html', position=i)
+        page = Page(name=name, url=url, template=u'page.html', position=i)
         db.session.add(page)
 
     for i, (name, page_id, parent_id) in enumerate(menu, 1):

@@ -6,12 +6,9 @@
   	 <link rel=stylesheet href="{{ theme_static('css/bootstrap.css') }}?action=raw&ctype=text/css">
     <link rel=stylesheet href="{{ theme_static('css/font-awesome.css') }}?action=raw&ctype=text/css">
     <link rel=stylesheet href="{{ theme_static('css/wiki.css') }}?action=raw&ctype=text/css">
-    <link rel=stylesheet href="{{ theme_static('css/timeline.css') }}?action=raw&ctype=text/css">
-    <link rel=stylesheet href="{{ theme_static('css/menufix.css') }}?action=raw&ctype=text/css">
 
     <script type="text/javascript" src="{{ theme_static('js/jquery.js') }}?action=raw&ctype=text/javascript"></script>
     <script type="text/javascript" src="{{ theme_static('js/bootstrap.js') }}?action=raw&ctype=text/javascript"></script>
-    <script type="text/javascript" src="{{ theme_static('js/wiki.js') }}?action=raw&ctype=text/javascript"></script>
 
     <!-- MathJax (LaTeX for the web) -->
     <script src="http://2015.igem.org/common/MathJax-2.5-latest/MathJax.js?config=TeX-AMS-MML_SVG"></script>
@@ -87,7 +84,7 @@
     	<div class="col-md-9">
             <div class="row clearfix">
             {% for section in page.sections %}
-                 {% include theme(section.template or 'sections/section.html') %}
+                 {% include theme('sections/'+ (section.template or 'section.html')) %}
             {% endfor %}
 			</div>
 		</div>
